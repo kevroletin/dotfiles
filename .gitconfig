@@ -1,0 +1,17 @@
+[user]
+  name = Vasiliy Kevroletin
+  email = kevroletin@gmail.com
+  signingkey = 0x725E261B86255E90
+[includeIf "gitdir:~/Scratch/serokell/"]
+  path = .gitconfig-serokell
+[includeIf "gitdir:~/Work/serokell/"]
+  path = .gitconfig-serokell
+[commit]
+  gpgsign = true
+[push]
+  default = simple
+[github]
+  user = kevroletin
+  oauth-token = 2d5bd97d380ef622c930f84e9365389fecdd510c
+[core]
+  editor = /usr/bin/vim
