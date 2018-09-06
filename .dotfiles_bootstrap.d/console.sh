@@ -8,7 +8,7 @@ echo "sudo chsh `whoami` -s `which zsh`" >> $RESULT_SCRIPT_FILE
 while true; do
     read -p "Do you wish to install console version of emacs? " yn
     case $yn in
-        [Yy]* ) PACKAGES="$PACKAGES emacs24-nox"; break;;
+        [Yy]* ) PACKAGES="$PACKAGES emacs-nox"; break;;
         [Nn]* ) break;;
         * ) echo "Please answer yes or no.";;
     esac
