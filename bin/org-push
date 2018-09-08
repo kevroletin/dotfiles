@@ -13,3 +13,7 @@ popd
 pushd ~/org/work
 commit || true
 popd
+
+pushd ~/org/common
+commit || true
+popd

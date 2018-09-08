@@ -37,9 +37,10 @@
 ;;  '(default ((t (:foreground "#586e75" :background "#fdf6e3")))))
 ;;
 ;; Solarized dark
- (custom-set-faces
-   '(default ((t (:foreground "#93a1a1" :background "#002b36")))))
+(custom-set-faces
+  '(default ((t (:foreground "#93a1a1" :background "#002b36")))))
 
+(add-to-list 'load-path "/home/behemoth/bin/")
 (require 'htmlize)
 
 ;; Use this to play with css styles

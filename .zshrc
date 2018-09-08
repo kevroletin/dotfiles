@@ -182,3 +182,84 @@ rand_long_password_clipboard() { _rand_password_stream | head -c${1:-16} | xi; x
 
 # selection framework
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# https://stackoverflow.com/questions/27728838/using-hoogle-in-a-haskell-development-environment-on-nix?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+env-type () {
+  envtype="$1"
+  shift
+  nix-shell -Q -p $envtype "$@"
+}
+
+haskell-env () {
+  env-type "haskellEnv" "$@"
+}
+
+haskell-env-hoogle () {
+  env-type "haskellEnvHoogle" "$@"
+}
+
+
+copy-stack-tools() {
+    stack build --copy-compiler-tool hlint hoogle weeder stylish-haskell hindent hasktags ghcid .
+}
+
+stackify() {
+    compiler_bin=$(stack path --compiler-bin)
+    compiler_tools_bin=$(stack path --compiler-tools-bin)
+    if [ ! -d $compiler_tools_bin ]; then
+        copy-stack-tools
+    fi
+    if [ ! -d $compiler_bin ]; then
+        stack build --install-ghc
+    fi
+    PATH=$compiler_bin:$compiler_tools_bin:$PATH zsh
+}
+
+#
+# Serokell helpers
+#
+
+TOKYO_IP=xx.xx.xx.xx
+
+proxyfy() {
+    export http_proxy="http://$TOKYO_IP:3128"
+    export https_proxy="http://$TOKYO_IP:3128"
+}
+
+vpn() {
+    sshuttle -r ubuntu@$TOKYO_IP 0.0.0.0/0 --ssh-cmd 'ssh -i ~/.ssh/aws-default.pem'
+}
+
+export YT_TOKEN='xxx'
+
+yt-yesterday-export() {
+    yt org export --file '/home/behemoth/org/work/work.org' --yt-token $YT_TOKEN --user vasiliy.kevroletin --since $(date "+%G-%m-%d" --date="1 days ago")
+}
+
+yt-yesterday-show() {
+    yt org local --file '/home/behemoth/org/work/work.org' --yt-token $YT_TOKEN --since $(date "+%G-%m-%d" --date="1 days ago")
+}
+
+yt-export-since() {
+    yt org export --file '/home/behemoth/org/work/work.org' --yt-token $YT_TOKEN --user vasiliy.kevroletin --since $1
+}
+
+yt-show-since() {
+    yt org local --file '/home/behemoth/org/work/work.org' --yt-token $YT_TOKEN --since $1
+}
+
+yt-export() {
+    yt org export --file '/home/behemoth/org/work/work.org' --yt-token $YT_TOKEN --user vasiliy.kevroletin --since $(date "+%G-%m-%d")
+}
+
+yt-show() {
+    yt org local --file '/home/behemoth/org/work/work.org' --yt-token "$YT_TOKEN" --since $(date "+%G-%m-%d")
+}
+
+yt-week-show() {
+    yt org local --file '/home/behemoth/org/work/work.org' --yt-token "$YT_TOKEN" --since $(date --date="last monday" "+%G-%m-%d")
+}
+
+export KEYID=0x725E261B86255E90
+
+export GPG_TTY=$(tty)
