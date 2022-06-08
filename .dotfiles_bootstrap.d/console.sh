@@ -14,7 +14,7 @@ while true; do
     esac
 done
 
-echo "echo === Installing fzf using its own install script ===" >> $RESULT_SCRIPT_FILE
-echo "~/.fzf/install" >> $RESULT_SCRIPT_FILE
+# echo "echo === Installing fzf using its own install script ===" >> $RESULT_SCRIPT_FILE
+# echo "~/.fzf/install" >> $RESULT_SCRIPT_FILE
 
 echo $PACKAGES > $RESULT_PACKAGES_FILE
