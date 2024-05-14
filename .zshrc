@@ -140,7 +140,7 @@ integrate-clipboard() {
     bindkey '^Y'   pb-yank
 }
 
-if echo text | xi 2> /dev/null ; then
+if which xclip 2> /dev/null > /dev/null ; then
     integrate-clipboard
 fi
 
@@ -167,7 +167,6 @@ ranger-cd() {
 # will obtain consistent ranger-console switching.
 zle -N ranger-cd
 bindkey '^o' ranger-cd
-alias rg=ranger-cd
 
 # Press M-x to quickly find this function
 _rand_password_stream() { < /dev/urandom tr -dc 'A-Z-a-z-0-9!"#$%&''()*+,-./:;<=>?@[\]^_{|}~,`' }
@@ -263,3 +262,11 @@ yt-week-show() {
 export KEYID=0x725E261B86255E90
 
 export GPG_TTY=$(tty)
+
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
