@@ -1,0 +1,72 @@
+virtual_modifiers:
+  - CapsLock
+keymap:
+  - name: Emacs binding
+    remap:
+      CapsLock-a: home
+      CapsLock-b: left
+      CapsLock-c: C-c # sig int
+      CapsLock-d: C-d # sig eof
+      CapsLock-e: end
+      CapsLock-f: right
+      CapsLock-g: esc
+      CapsLock-h: backspace
+      CapsLock-i: C-i # C-i C-o is for vim jump back/forward
+      CapsLock-j: enter
+      CapsLock-k: C-k # kill line
+      CapsLock-l: C-l # center view/clear console
+      CapsLock-m: C-m # TODO
+      CapsLock-n: down
+      CapsLock-o: C-o # Vim jump back
+      CapsLock-p: up
+      CapsLock-q: Tab # TODO experimenting
+      CapsLock-r: C-r # Vim undo
+      CapsLock-s: C-s # TODO
+      CapsLock-t: C-t # Firefox new tab
+      CapsLock-u: CapsLock # TODO would be great to have sticky shift here
+      CapsLock-v: C-v # Paste
+      CapsLock-w: C-w # Firefox kill tab
+      CapsLock-x: C-x # TODO
+      CapsLock-y: C-y # TODO
+      CapsLock-z: C-z # TODO
+      CapsLock-leftbrace: esc
+      CapsLock-1: C-1
+      CapsLock-2: C-2
+      CapsLock-3: C-3
+      CapsLock-4: C-4
+      CapsLock-5: C-5
+      CapsLock-6: C-6
+      CapsLock-7: C-7
+      CapsLock-8: C-8
+      CapsLock-8: C-9
+      CapsLock-0: C-0
+      # TODO: ; ' , . /
+    mode: default
+    # TODO: does it worth it?
+  - name: Navigation
+    remap:
+      j: down
+      k: up
+      h: left
+      l: right
+      CapsLock-g:
+        set_mode: default
+      CapsLock-leftbrace:
+        set_mode: default
+      CapsLock-k:
+        set_mode: default
+      Esc:
+        set_mode: default
+      i:
+        set_mode: default
+    mode: vim
+modmap:
+  - remap:
+      LeftShift:
+        held: LeftShift
+        alone: Space
+        alone_timeout_millis: 200 # Optional# modmap:
+#   - name: Except Chrome
+#     remap:
+#       CapsLock: Control_L
+# default_mode: default
