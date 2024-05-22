@@ -259,6 +259,18 @@ yt-week-show() {
     yt org local --file '/home/behemoth/org/work/work.org' --yt-token "$YT_TOKEN" --since $(date --date="last monday" "+%G-%m-%d")
 }
 
+# cahed version of source <(fzf --zsh)
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+bright () {
+    if [ "$1" -eq "0" ]; then
+        val=5000
+    else
+        val="${1}0000"
+    fi
+    echo $val > /sys/class/backlight/intel_backlight/brightness
+}
+
 export KEYID=0x725E261B86255E90
 
 export GPG_TTY=$(tty)
@@ -270,3 +282,6 @@ fi
 if [ -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
 fi
+
+# kubectl package manager
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
