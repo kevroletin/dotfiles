@@ -61,11 +61,15 @@ keymap:
         set_mode: default
     mode: vim
 modmap:
-  - remap:
-      LeftShift:
-        held: LeftShift
-        alone: Space
-        alone_timeout_millis: 200 # Optional# modmap:
+  # - remap:
+  #     LeftShift:
+  #       held: LeftShift
+  #       alone: Space
+  #       alone_timeout_millis: 200 # Optional# modmap:
+  - device:
+      only: ['M1Pro_X1_3AC6 Keyboard']
+    remap:
+      Space: CapsLock
 #   - name: Except Chrome
 #     remap:
 #       CapsLock: Control_L

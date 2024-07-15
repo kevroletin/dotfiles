@@ -1,3 +1,7 @@
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
+
 if [ -d $HOME/.local/bin ]; then
     PATH=$HOME/.local/bin:$PATH
 fi
@@ -15,3 +19,5 @@ export SHELL=/usr/bin/zsh
 export EDITOR=/usr/bin/vim
 export LC_ALL="en_US.UTF-8"
 export LANGUAGE="en_US.UTF-8"
+
+. "$HOME/.cargo/env"

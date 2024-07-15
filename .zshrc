@@ -48,6 +48,8 @@ alias join_light_side="xrdb -merge $HOME/.base16-xresources/xresources/base16-so
 alias xi="xclip -i -selection clipboard"
 alias xo="xclip -o -selection clipboard"
 
+alias kk=kubectl
+
 # zsh-autosuggestions
 #
 # https://github.com/zsh-users/zsh-autosuggestions/blob/master/src/config.zsh
@@ -262,6 +264,8 @@ yt-week-show() {
 # cahed version of source <(fzf --zsh)
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+eval "$(direnv hook zsh)"
+
 bright () {
     if [ "$1" -eq "0" ]; then
         val=5000
@@ -285,3 +289,13 @@ fi
 
 # kubectl package manager
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+# pyenv
+# --- slow startup ---
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+function pyenv-init () {
+    eval "$(pyenv init --path)"
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+}
