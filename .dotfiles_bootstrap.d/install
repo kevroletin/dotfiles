@@ -3,7 +3,7 @@
 # into home directory.
 #
 
-set -x
+set -xe
 
 configure_tools() {
     sudo apt-get update
