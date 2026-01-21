@@ -42,9 +42,6 @@ fi
 # Manual config
 #
 
-alias join_dark_side="xrdb -merge $HOME/.base16-xresources/xresources/base16-default-dark.Xresources"
-alias join_light_side="xrdb -merge $HOME/.base16-xresources/xresources/base16-solarized-light.Xresources"
-
 alias xi="xclip -i -selection clipboard"
 alias xo="xclip -o -selection clipboard"
 
@@ -190,9 +187,6 @@ rand_password_clipboard() { _rand_password_stream | head -c${1:-8} | xi; xo; ech
 
 rand_long_password_clipboard() { _rand_password_stream | head -c${1:-16} | xi; xo; echo }
 
-# selection framework
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
 # https://stackoverflow.com/questions/27728838/using-hoogle-in-a-haskell-development-environment-on-nix?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 env-type () {
   envtype="$1"
@@ -225,76 +219,8 @@ stackify() {
     PATH=$compiler_bin:$compiler_tools_bin:$PATH zsh
 }
 
-#
-# Serokell helpers
-#
-
-TOKYO_IP=xx.xx.xx.xx
-
-proxyfy() {
-    export http_proxy="http://$TOKYO_IP:3128"
-    export https_proxy="http://$TOKYO_IP:3128"
-}
-
-vpn() {
-    sshuttle -r ubuntu@$TOKYO_IP 0.0.0.0/0 --ssh-cmd 'ssh -i ~/.ssh/aws-default.pem'
-}
-
-export YT_TOKEN='xxx'
-
-yt-yesterday-export() {
-    yt org export --file '/home/behemoth/org/work/work.org' --yt-token $YT_TOKEN --user vasiliy.kevroletin --since $(date "+%G-%m-%d" --date="1 days ago")
-}
-
-yt-yesterday-show() {
-    yt org local --file '/home/behemoth/org/work/work.org' --yt-token $YT_TOKEN --since $(date "+%G-%m-%d" --date="1 days ago")
-}
-
-yt-export-since() {
-    yt org export --file '/home/behemoth/org/work/work.org' --yt-token $YT_TOKEN --user vasiliy.kevroletin --since $1
-}
-
-yt-show-since() {
-    yt org local --file '/home/behemoth/org/work/work.org' --yt-token $YT_TOKEN --since $1
-}
-
-yt-export() {
-    yt org export --file '/home/behemoth/org/work/work.org' --yt-token $YT_TOKEN --user vasiliy.kevroletin --since $(date "+%G-%m-%d")
-}
-
-yt-show() {
-    yt org local --file '/home/behemoth/org/work/work.org' --yt-token "$YT_TOKEN" --since $(date "+%G-%m-%d")
-}
-
-yt-week-show() {
-    yt org local --file '/home/behemoth/org/work/work.org' --yt-token "$YT_TOKEN" --since $(date --date="last monday" "+%G-%m-%d")
-}
-
-# cahed version of source <(fzf --zsh)
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-eval "$(direnv hook zsh)"
-
-bright () {
-    if [ "$1" -eq "0" ]; then
-        val=5000
-    else
-        val="${1}0000"
-    fi
-    echo $val > /sys/class/backlight/intel_backlight/brightness
-}
-
 export KEYID=0x725E261B86255E90
-
 export GPG_TTY=$(tty)
-
-if [ -d "$HOME/.local/bin" ] ; then
-    PATH="$HOME/.local/bin:$PATH"
-fi
-
-if [ -d "$HOME/bin" ] ; then
-    PATH="$HOME/bin:$PATH"
-fi
 
 # kubectl package manager
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
@@ -316,6 +242,8 @@ function nvm-init () {
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 }
 
-[ -f "/home/behemoth/.ghcup/env" ] && . "/home/behemoth/.ghcup/env" # ghcup-env
-
 eval "$(zoxide init zsh)"
+
+eval "$(direnv hook zsh)"
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
