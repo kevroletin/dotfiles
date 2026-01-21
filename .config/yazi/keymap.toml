@@ -1,0 +1,5 @@
+# keymap.toml
+[[mgr.prepend_keymap]]
+on   = "M"
+run  = ["plugin toggle-pane min-parent", "plugin toggle-pane min-preview"]
+desc = "Maximize current pane"
