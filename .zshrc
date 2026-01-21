@@ -165,10 +165,19 @@ ranger-cd() {
     fi
 }
 
+function yazi-cd() {
+	  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	  command yazi "$@" --cwd-file="$tmp"
+	  IFS= read -r -d '' cwd < "$tmp"
+	  [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	  rm -f -- "$tmp"
+}
+
 # Bind Ctrl-O to ranger-cd. If ranger uses same key for entering shell then we
 # will obtain consistent ranger-console switching.
-zle -N ranger-cd
-bindkey '^o' ranger-cd
+zle -N yazi-cd
+bindkey '^o' yazi-cd
+# bindkey '^I' edit-command-line
 
 # Press M-x to quickly find this function
 _rand_password_stream() { < /dev/urandom tr -dc 'A-Z-a-z-0-9!"#$%&''()*+,-./:;<=>?@[\]^_{|}~,`' }
@@ -293,9 +302,20 @@ export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 # pyenv
 # --- slow startup ---
 export PYENV_ROOT="$HOME/.pyenv"
+
 export PATH="$PYENV_ROOT/bin:$PATH"
 function pyenv-init () {
     eval "$(pyenv init --path)"
     eval "$(pyenv init -)"
     eval "$(pyenv virtualenv-init -)"
 }
+
+export NVM_DIR="$HOME/.nvm"
+function nvm-init () {
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+}
+
+[ -f "/home/behemoth/.ghcup/env" ] && . "/home/behemoth/.ghcup/env" # ghcup-env
+
+eval "$(zoxide init zsh)"

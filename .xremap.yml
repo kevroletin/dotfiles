@@ -13,34 +13,57 @@ keymap:
       CapsLock-h: backspace
       CapsLock-i: C-i # C-i C-o is for vim jump back/forward
       CapsLock-j: enter
-      CapsLock-k: C-k # kill line
+      CapsLock-k: C-k # kill to the end of line
       CapsLock-l: C-l # center view/clear console
-      CapsLock-m: C-m # TODO
+      CapsLock-m: Shift-backslash # pipe todo
+      CapsLock-Shift-m: backslash # pipe
       CapsLock-n: down
       CapsLock-o: C-o # Vim jump back
       CapsLock-p: up
-      CapsLock-q: Tab # TODO experimenting
+      CapsLock-q: grave
       CapsLock-r: C-r # Vim undo
       CapsLock-s: C-s # TODO
-      CapsLock-t: C-t # Firefox new tab
-      CapsLock-u: CapsLock # TODO would be great to have sticky shift here
+      CapsLock-t: Tab
+      CapsLock-Shift-u: CapsLock
+      # CapsLock-u: todo
       CapsLock-v: C-v # Paste
       CapsLock-w: C-w # Firefox kill tab
-      CapsLock-x: C-x # TODO
+      CapsLock-x: Shift-semicolon # TODO vim execute command
+      Shift-CapsLock-x: semicolon #
       CapsLock-y: C-y # TODO
       CapsLock-z: C-z # TODO
       CapsLock-leftbrace: esc
-      CapsLock-1: C-1
-      CapsLock-2: C-2
-      CapsLock-3: C-3
-      CapsLock-4: C-4
-      CapsLock-5: C-5
-      CapsLock-6: C-6
-      CapsLock-7: C-7
-      CapsLock-8: C-8
-      CapsLock-8: C-9
-      CapsLock-0: C-0
-      # TODO: ; ' , . /
+      CapsLock-1: Shift-1
+      CapsLock-2: Shift-2
+      CapsLock-3: Shift-3
+      CapsLock-4: Shift-4
+      CapsLock-5: Shift-5
+      CapsLock-6: Shift-6
+      CapsLock-7: Shift-7
+      CapsLock-8: Shift-8
+      CapsLock-9: Shift-9
+      CapsLock-0: Shift-0
+      CapsLock-Space: LeftShift-RightShift
+
+      CapsLock-comma: Shift-LeftBrace
+      Shift-CapsLock-comma: LeftBrace
+      CapsLock-dot: Shift-RightBrace
+      Shift-CapsLock-dot: RightBrace
+
+      CapsLock-semicolon: Shift-apostrophe
+      Shift-CapsLock-semicolon: apostrophe
+
+      # CapsLock-dot: #TODO
+      # , comma
+      # . period
+      # , comma
+      # . period
+      # ; colon
+      # ' apostrophe
+      # - minus
+      # = equal
+      # \ backslash
+
     mode: default
     # TODO: does it worth it?
   - name: Navigation
@@ -67,9 +90,16 @@ modmap:
   #       alone: Space
   #       alone_timeout_millis: 200 # Optional# modmap:
   - device:
-      only: ['M1Pro_X1_3AC6 Keyboard']
+      only: ['M1Pro_X1_3AC6 Keyboard', 'Hengchangtong  HCT USB Entry Keyboard']
     remap:
       Space: CapsLock
+#      Alt_L: SUPER_L
+  - device:
+      only: ['Logitech Wireless Keyboard']
+    remap:
+      b: SUPER_L
+      Alt_R: SUPER_L
+
 #   - name: Except Chrome
 #     remap:
 #       CapsLock: Control_L
