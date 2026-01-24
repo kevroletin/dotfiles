@@ -25,7 +25,7 @@ def interactive_dialog [$header] {
   let file = "dotfiles-interactive-dialog.txt"
   let marker = "--- *** Edit below this line *** ---"
 
-  $header | save -f $file
+  $header | lines | skip while { is-empty } | save -f $file
   $"\n($marker)\n\n" | save --append $file
   $in | save --append $file
 
@@ -144,7 +144,6 @@ def fix_vcsh_absolute_links [] {
   }
 }
 
-
 def clone_into_fake_home [] {
   assert_fake_home 
 
@@ -158,29 +157,6 @@ def clone_into_fake_home [] {
 def to_old_path [] {
   $"($env.OLD_HOME)/($in)"
 }
-
-def compare_old_home_only_files [] {
-  assert_fake_home
-
-
-  ls -a **/* 
-  | where type == file
-  | get name
-  | each { |file|
-    let exists = $file | to_old_path | path exists
-    { name: $file
-    , is-conflict: (
-        if ($exists) {
-          (open -r $file) != (open -r ($file | to_old_path))
-        } else {
-          false
-        }
-      )
-    , exists: $exists
-    }
-  }
-}
-
 
 def all_path_prefixes [] {
   if ($in | is-empty) {
@@ -214,7 +190,7 @@ def compute_file_conflicts [--ls-res: table] {
   }
 }
 
-def compute_dir_conflicts [--ls-res: table, --file_conflicts: table] {
+def compute_dir_conflicts [--ls-res: table, --file-conflicts: table] {
   assert_fake_home
 
   let ls_res = $ls_res | default (ls -a **/*)
@@ -237,8 +213,8 @@ def compute_dir_conflicts [--ls-res: table, --file_conflicts: table] {
   }
 }
 
-def compute_git_repo_conflicts [--ls-res: table, --file_conflicts: table, --dir_conflicts: table] {
-    let dirs = $dir_conflicts | default (compute_dir_conflicts --ls-res=$ls_res --file_conflicts=$file_conflicts)
+def compute_git_repo_conflicts [--ls-res: table, --file-conflicts: table, --dir-conflicts: table] {
+    let dirs = $dir_conflicts | default (compute_dir_conflicts --ls-res=$ls_res --file-conflicts=$file_conflicts)
 
     let repos =  $dirs
     | where { $in.name | path basename | $in == ".git" }
@@ -255,46 +231,66 @@ def compare_old_home [] {
   let file_conflicts = compute_file_conflicts --ls-res=$ls_res
 
   { files: $file_conflicts
-  , dirs: (compute_dir_conflicts --ls-res=$ls_res --file_conflicts=$file_conflicts)
+  , dirs: (compute_dir_conflicts --ls-res=$ls_res --file-conflicts=$file_conflicts)
   }
 }
-
-def find_conflicts [] { compare_old_home_only_files | where is-conflict | get name }
 
 def interactiv_resolve_conflicts [] {
   assert_fake_home
 
   let ls_res = ls -a **/*
-  let files = compute_file_conflicts --ls-res=$ls_res
-  let dirs = compute_dir_conflicts --ls-res=$ls_res --file_conflicts=$files
-  let repos = compute_git_repo_conflicts --ls-res=$ls_res --file_conflicts=$files --dir_conflicts=$dirs
 
+  let repos = $ls_res
+  | where type == dir
+  | where { $in.name | path basename | $in == ".git" }
+  | each { $in.name | path dirname }
+  | sort | uniq
+
+  let ignore_files = [
+    "do.nu"
+    , ".viminfo"
+    , "config/kdiff3rc"
+  ]
+  let ignore_dirs = [
+    ".config/vcsh/repo.d/dotfiles.git"
+    , .cache
+  ]
   let ignore_dirs = do {
-    let conflict_num = $repos | where is-conflict | length
+    let conflict_num = $repos | where { to_old_path | path exists } | length
     let num = $repos | length
     let msg = $"
 There are ($num) git repos. ($conflict_num) of which already exist in the system.
 
-The way to deal with git directories is to ignore their content in dialogs and
-then to replace the whole directory with new content.
+We would ignore their content in dialogs and then just replace the whole
+directory with new content.
 
-Below is the list of directories which we will ignore in interactive dialogs and
-will replace with the fresh intallation. It consists of normal git repos and
-.config/vcsh/repo.d/dotfiles.git
+Below is the list of such directories. It consists of normal git repos,
+.config/vcsh/repo.d/dotfiles.git and some other annoying dirs:
 
 You can edit this list:
 "
-    $repos | get name | append ".config/vcsh/repo.d/dotfiles.git" | interactive_dialog $msg
+    $repos | append $ignore_dirs | interactive_dialog $msg
   }
 
-  def is_ok [] {
-    let filename = $in
-    not ($ignore_dirs | any { |ignored| $filename | str starts-with $ignored })
+  # filter out ignored files
+  let ls_res = do {
+    def is_ok [] {
+      let filename = $in
+      let by_dir = $ignore_dirs | any { |ignored| 
+        $filename | str starts-with $ignored
+      }
+      let by_file = $filename in $ignore_files
+      not ($by_dir or $by_file)
+    }
+    $ls_res | where ($it.name | is_ok)
   }
+
+  let files = compute_file_conflicts --ls-res=$ls_res
+  let dirs = compute_dir_conflicts --ls-res=$ls_res --file-conflicts=$files
 
   let clean_files = do {
     let clean = $files 
-    | where ($it.name | is_ok) and (not $it.is-conflict) and (not $it.exists)
+    | where (not $it.is-conflict) and (not $it.exists)
 
     let msg = $"
 There are ($clean | length) new files which have no conflicts.
@@ -305,7 +301,7 @@ Please review/edit the list below:
   }
 
   let conflict_files = do {
-    let conflicts = $files | where { $in.name | is_ok } | where is-conflict
+    let conflicts = $files | where is-conflict
 
     let $num = $conflicts | length
     let msg = $"
@@ -320,12 +316,11 @@ In the next step we would propose to run diff for selected files:
     let layout = [ {"on the left": "existing system config", "on the right": "new config"}
                   , {"on the left": $env.OLD_HOME, "on the right": $env.HOME} ]
     let msg = $"
-Number of conflicts: ($conflict_files | length)
 Difftool: ($difftool)
 
 ($layout | to md --pretty | into string)
 
-Note: if you will copy changes into a file on the right, these changes will be
+Note: if you copy changes into a file on the right, these changes will be
 copyied into the system in the next steps.
 
 Edit the list below to specify which files to diff:
@@ -335,42 +330,53 @@ Edit the list below to specify which files to diff:
 
   $diff_files | each { run-external $difftool ($in | to_old_path) ($in) | ignore }
 
-  let $res = "do.nu"
-  let header = $'#!/usr/bin/env nu
+  # generate script
+  let $res_script = do {
+    let $res = "do.nu"
+    let header = $'#!/usr/bin/env nu
 
 cd "($env.fAKE_HOME)"
 
 ' | save -f $res
 
-  $ignore_dirs | each {
-    let from = $in
-    let to = ($in | to_old_path)
+    $ignore_dirs | each {
+      let from = $in
+      let to = ($in | to_old_path)
 
-    [ $'try { rm -r "($to)" }'
-    , $'cp -r "($from)" "($to)"']
-  } | flatten | uniq | save --append $res
+      [ $'try { rm -r "($to)" }'
+      , $'cp -r "($from)" "($to)"']
+    } | flatten | uniq | save --append $res
 
-  "\n" | save --append $res
+    "\n" | save --append $res
 
-  $clean_files | each {
-    let from = $in
-    let to = ($in | to_old_path)
+    $clean_files | each {
+      let from = $in
+      let to = ($in | to_old_path)
 
-    [ $'mkdir "($to | path dirname)"'
-    , $'cp "($from)" "($to)"']
-  } | flatten | uniq | save --append $res
+      [ $'mkdir "($to | path dirname)"'
+      , $'cp "($from)" "($to)"']
+    } | flatten | uniq | save --append $res
 
-  "\n" | save --append $res
+    "\n" | save --append $res
 
-  $conflict_files | each {
-    let from = $in
-    let to = ($in | to_old_path)
+    $conflict_files | each {
+      let from = $in
+      let to = ($in | to_old_path)
 
-    $'cp "($from)" "($to)"'
-  } | save --append $res
+      $'cp "($from)" "($to)"'
+    } | save --append $res
 
-  run-external $editor $res
-  print $"\n\nnu '($env.FAKE_HOME)/($res)'"
+    $res
+  }
+
+  run-external $editor $res_script
+  print $"\n\nnu '($env.FAKE_HOME)/($res_script)'\n"
+
+  let response = (input "Do you want to run the script? (y/n): ")
+  if $response == "y" or $response == "Y" {
+      nu $"($env.FAKE_HOME)/($res_script)"
+  }
+  print "Done"
 }
 
 def "main continue" [] {
@@ -382,7 +388,6 @@ def "main continue" [] {
 def "main clone" [] {
   with-new-fake-home {
     clone_into_fake_home
-    interactiv_resolve_conflicts
   }
 }
 
