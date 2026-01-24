@@ -9,11 +9,5 @@ Step 1: configure github access
 
 Step 2: download and run script
 
-     cd /tmp
-     wget https://raw.githubusercontent.com/kevroletin/dotfiles.mr/master/.dotfiles_bootstrap.d/install
-     sh install
-
-Or 
-
      curl https://raw.githubusercontent.com/kevroletin/dotfiles.mr/master/.dotfiles_bootstrap.d/install > /tmp/install
      sh /tmp/install

@@ -3,6 +3,8 @@
 # into home directory.
 #
 
+set -xe
+
 configure_tools() {
     sudo apt-get update
     sudo apt-get install curl git myrepos vcsh
@@ -85,7 +87,7 @@ setup_fake_home
     cd $HOME
     install_mr
     ask_and_install_dotfile_repos
-    mr update --trust-all
+    mr update
 restore_home
 cd $HOME
 copy_files_to_home
