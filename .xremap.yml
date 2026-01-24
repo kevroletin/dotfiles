@@ -43,7 +43,8 @@ keymap:
       CapsLock-8: Shift-8
       CapsLock-9: Shift-9
       CapsLock-0: Shift-0
-      CapsLock-Space: LeftShift-RightShift
+      # switch language
+      #CapsLock-Space: LeftShift-RightShift
 
       CapsLock-comma: Shift-LeftBrace
       Shift-CapsLock-comma: LeftBrace

@@ -162,18 +162,19 @@ ranger-cd() {
     fi
 }
 
-function yazi-cd() {
-	  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-	  command yazi "$@" --cwd-file="$tmp"
-	  IFS= read -r -d '' cwd < "$tmp"
-	  [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
-	  rm -f -- "$tmp"
+function y() {
+    local tmp=$(mktemp -t "yazi-cwd.XXXXX")
+    yazi "$@" --cwd-file="$tmp"
+    if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+        cd -- "$cwd"
+    fi
+    rm -f -- "$tmp"
 }
 
 # Bind Ctrl-O to ranger-cd. If ranger uses same key for entering shell then we
 # will obtain consistent ranger-console switching.
-zle -N yazi-cd
-bindkey '^o' yazi-cd
+zle -N y
+bindkey '^o' y
 # bindkey '^I' edit-command-line
 
 # Press M-x to quickly find this function
