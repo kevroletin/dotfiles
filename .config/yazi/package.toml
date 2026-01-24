@@ -8,5 +8,10 @@ use = "yazi-rs/plugins:toggle-pane"
 rev = "de33976"
 hash = "8a7c58225816a163a6e8730c0adafbc8"
 
+[[plugin.deps]]
+use = "hankertrix/augment-command"
+rev = "7c12bdf"
+hash = "f7e6d377e4efee567ec6d1c2355f2ca3"
+
 [flavor]
 deps = []
