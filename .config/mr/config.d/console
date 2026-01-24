@@ -5,10 +5,10 @@ checkout = ssh -T git@github.com 2>&1 | grep -q success && vcsh clone git@github
 checkout = git clone --depth 1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 push = :
 
-[$HOME/.zprezto]
-checkout = git clone --depth 1 --recursive https://github.com/sorin-ionescu/prezto.git ~/.zprezto
-update = git pull && git submodule update --init --recursive
-
 [$HOME/.fzf]
 checkout = git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 push = :
+
+[$HOME/.zprezto]
+checkout = git clone --depth 1 --recursive https://github.com/sorin-ionescu/prezto.git ~/.zprezto
+update = git pull && git submodule update --init --recursive

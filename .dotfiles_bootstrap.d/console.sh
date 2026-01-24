@@ -1,6 +1,6 @@
 #!exec sh
 
-PACKAGES="vcsh mr zsh ranger ispell lynx vim"
+PACKAGES="vcsh mr zsh ranger ispell lynx vim direnv"
 
 echo "echo === Changing default shell to zsh ===" >> $RESULT_SCRIPT_FILE
 echo "sudo chsh `whoami` -s `which zsh`" >> $RESULT_SCRIPT_FILE
