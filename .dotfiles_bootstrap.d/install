@@ -130,11 +130,28 @@ this confis has several groups defined, choose which ones to use:
   $user_choice
 }
 
+def fix_vcsh_absolute_links [] {
+  assert_fake_home
+  cd ".config/vcsh/repo.d/"
+  let $a = $env.FAKE_HOME
+  let $b = $env.OLD_HOME
+  ls -a **/* | where type == file | get name | each { |file|
+    if (^file $file | str contains text) {
+      let temp = mktemp
+      open -r $file | each { str replace $a $b } | save -f -r $temp
+      mv -f $temp $file
+    }
+  }
+}
+
+
 def clone_into_fake_home [] {
   assert_fake_home 
 
   vcsh clone ("kevroletin/dotfiles" | gh) dotfiles
   interactive_link_mr
+
+  fix_vcsh_absolute_links
   mr update
 }
 
@@ -247,7 +264,7 @@ def find_conflicts [] { compare_old_home_only_files | where is-conflict | get na
 def interactiv_resolve_conflicts [] {
   assert_fake_home
 
-  let ls_res = ls -a **/* 
+  let ls_res = ls -a **/*
   let files = compute_file_conflicts --ls-res=$ls_res
   let dirs = compute_dir_conflicts --ls-res=$ls_res --file_conflicts=$files
   let repos = compute_git_repo_conflicts --ls-res=$ls_res --file_conflicts=$files --dir_conflicts=$dirs
@@ -353,7 +370,7 @@ cd "($env.fAKE_HOME)"
   } | save --append $res
 
   run-external $editor $res
-  print $"nu '($env.FAKE_HOME)/($res)'"
+  print $"\n\nnu '($env.FAKE_HOME)/($res)'"
 }
 
 def "main continue" [] {
