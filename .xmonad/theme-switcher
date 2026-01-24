@@ -16,7 +16,7 @@ def set-dunst-theme [style] {
 }
 
 def set-helix-theme [style] {
-  let x = "/home/behemoth/.config/helix/themes/adaptive.toml"
+  let x = $"($HOME)/.config/helix/themes/adaptive.toml"
   $'inherits = "solarized_($style)"' | save --force $x
 }
 

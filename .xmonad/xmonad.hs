@@ -47,22 +47,16 @@ scratchpads = [
       NS "quake" "alacritty --class scratchpad-quake"
           (appName =? "scratchpad-quake")
           (customFloating $ W.RationalRect (0) (6/10) (1) (4/10))
-      , NS "numen" ("alacritty --class scratchpad-numen --working-directory /home/behemoth -e " ++ numenTailCmd)
+      , NS "numen" ("alacritty --class scratchpad-numen --working-directory $HOME -e " ++ numenTailCmd)
             (appName =? "scratchpad-numen")
             (customFloating $ W.RationalRect (33/40) (9/20) (3/20) (5/10))
-      -- , NS "numen" "alacritty --class scratchpad-numen --working-directory /home/behemoth -e sh -c 'echo > /tmp/phrases.log; tail -F /tmp/phrases.log & numen --phraselog /tmp/phrases.log'"
-      --     (appName =? " scratchpad-numen")
-      --     (customFloating $ W.RationalRect (33/40) (9/20) (3/20) (5/10))
-      -- , NS "test" "wezterm start --class scratchpad-test --position 1600,450 "
-      --     (appName =? "scratchpad-test")
-      --     (customFloating $ W.RationalRect (33/40) (9/20) (3/20) (5/10))
       ]
   where
     numenTailCmd = "sh -c 'echo > /tmp/phrases.log; tail -F /tmp/phrases.log & numen --phraselog /tmp/phrases.log'"
 
 quakeAct =
   customRunNamedScratchpadAction
-    (\_ -> do x <- liftIO (dirFromClipboard "/home/behemoth")
+    (\_ -> do x <- liftIO (getHomeDirectory >>= dirFromClipboard)
               safeSpawn "alacritty" ["--working-directory", x, "--class", "scratchpad-quake"])
     scratchpads
     "quake"
@@ -86,36 +80,36 @@ openInEmacs args = ifProcessRuns "emacs" viaClient viaEmacs
 
 stopWhisper :: X()
 stopWhisper = do
-  safeSpawn "/bin/bash" ["-c", "echo load /home/behemoth/.config/numen/phrases/*.phrases| numenc"]
+  safeSpawn "/bin/bash" ["-c", "echo load ~/.config/numen/phrases/*.phrases| numenc"]
   safeSpawn "flatpak" ["run", "net.mkiol.SpeechNote", "--action", "stop-listening"]
 
-openEmacsAgenda = openInEmacs [ "/home/behemoth/org/personal/gtd.org" ]
+openEmacsAgenda = openInEmacs [ "~/org/personal/gtd.org" ]
 
 openObsidian =
   ifProcessRuns "obsidian"
     (return ())
     (safeSpawn "obsidian" ["obsidian://open?vault=share&file=Dashboard"])
 
-toggleTouchpad = spawn "/home/behemoth/bin/toggleTouchpad"
+toggleTouchpad = spawn "~/bin/toggleTouchpad"
 
---toggleCapture = spawn "/home/behemoth/bin/toggleCapture"
+--toggleCapture = spawn "~/bin/toggleCapture"
 
-toggleEarbuds = spawn "/home/behemoth/bin/toggleEarbuds"
+toggleEarbuds = spawn "~/bin/toggleEarbuds"
 
-muteSound = spawn "/home/behemoth/bin/mute"
+muteSound = spawn "~/bin/mute"
 
 -- pause numen and start voxtype, so that numen doesn't jump around while transcribing speech
-voxtypeStart = do spawn "/home/behemoth/Scratch/rust/voxtype/target/release/voxtype record start"
+voxtypeStart = do spawn "~/Scratch/rust/voxtype/target/release/voxtype record start"
                   spawn "notify-send 'voxtype record start'"
                   -- pause numen
-                  safeSpawn "/bin/bash" ["-c", "echo load /home/behemoth/.config/numen/phrases/empty.phrases | numenc"]
+                  safeSpawn "/bin/bash" ["-c", "echo load ~/.config/numen/phrases/empty.phrases | numenc"]
 
-voxtypeStop = do spawn "/home/behemoth/Scratch/rust/voxtype/target/release/voxtype record stop"
+voxtypeStop = do spawn "~/Scratch/rust/voxtype/target/release/voxtype record stop"
                  spawn "notify-send 'voxtype record stop'"
                  -- resume numen
-                 safeSpawn "/bin/bash" ["-c", "echo load /home/behemoth/.config/numen/phrases/*.phrases | numenc"]
+                 safeSpawn "/bin/bash" ["-c", "echo load ~/.config/numen/phrases/*.phrases | numenc"]
 
--- sendClipboardToTelegram = spawn "/home/behemoth/bin/telegram-send"
+-- sendClipboardToTelegram = spawn "~/bin/telegram-send"
 
 -- * disable repeating (bouncing) ScrollLock key
 -- * enable russian layout
@@ -123,7 +117,7 @@ voxtypeStop = do spawn "/home/behemoth/Scratch/rust/voxtype/target/release/voxty
 -- Configuring X setting turned out to be complicated due to startup order. Some daemon overrides settings during user startup
 -- and playing with systemctl startup sequence didn't help. As a workaround, this script has 5sec sleep and we run it here
 -- asynchronously
-configureXset = do spawnOnce "/home/behemoth/bin/configure-xset &"
+configureXset = do spawnOnce "~/bin/configure-xset &"
 
 -- mod1Mask - alt
 -- mod4Mask - win
@@ -153,7 +147,7 @@ keysToAdd x = [
   -- Handle print screen using scrot utility. Resulting pictures are in in ~/Pictures
   , ((controlMask, xK_Print), spawn "cd ~/Share; sleep 0.2; scrot -s")
   , ((0, xK_Print), spawn "cd ~/Share; scrot")
-  -- , (((modMask x), xK_F2), spawn "/home/behemoth/Downloads/NormCap-0.5.9-x86_64.AppImage -l chi --clipboard-handler xclip")
+  -- , (((modMask x), xK_F2), spawn "~/Downloads/NormCap-0.5.9-x86_64.AppImage -l chi --clipboard-handler xclip")
 
   -- Shortcuts to open programs
   , (((modMask x), xK_F1), spawn "xprop | grep 'WM_CLASS\\|WM_NAME' | xmessage -file -")
@@ -182,8 +176,8 @@ keysToAdd x = [
   , ((modm .|. shiftMask, xK_n), namedScratchpadAction scratchpads "numen")
 
   -- See Graphics.X11.ExtraTypes.XF86
-  , ((0, xF86XK_AudioLowerVolume), spawn "/home/behemoth/bin/adjust-brightness -")
-  , ((0, xF86XK_AudioRaiseVolume), spawn "/home/behemoth/bin/adjust-brightness +")
+  , ((0, xF86XK_AudioLowerVolume), spawn "~/bin/adjust-brightness -")
+  , ((0, xF86XK_AudioRaiseVolume), spawn "~/bin/adjust-brightness +")
   -- , ((0, xF86XK_AudioMute), spawn "sleep 0.5s; xset dpms force off")
   , ((0, xF86XK_AudioMute), spawn "~/.xmonad/toggle-theme")
 
@@ -194,7 +188,7 @@ keysToAdd x = [
   , ((modm, xK_a), killAllOtherCopies)
 
 
-  , ((modm .|. shiftMask, xK_Return), do x <- liftIO (dirFromClipboard "/home/behemoth")
+  , ((modm .|. shiftMask, xK_Return), do x <- liftIO (dirFromClipboard "~")
                                          safeSpawn "alacritty" ["--working-directory", x])
   ] ++
   [((m .|. modm, k), windows $ f i)

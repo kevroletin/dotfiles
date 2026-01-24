@@ -56,7 +56,7 @@ URxvt.scrollBar: false
 ! Provides
 ! good user expierence if interactive shell is configured to copy killed text to
 ! clipboard
-URxvt.perl-lib: /home/behemoth/.urxvt/ext
+URxvt.perl-lib: ~/.urxvt/ext
 URxvt.perl-ext-common: default,keyboard-select,url-select,clipboard,font-size
 
 !URxvt.keysym.M-Insert: perl:keyboard-select:activate

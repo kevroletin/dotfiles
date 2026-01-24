@@ -40,7 +40,7 @@
 (custom-set-faces
   '(default ((t (:foreground "#93a1a1" :background "#002b36")))))
 
-(add-to-list 'load-path "/home/behemoth/bin/")
+(add-to-list 'load-path (expand-file-name "~/bin/"))
 (require 'htmlize)
 
 ;; Use this to play with css styles

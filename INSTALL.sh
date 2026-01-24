@@ -1,11 +1,11 @@
 sudo apt install ncal \
-	direnv \
-	ripgrep \
-	pip \
-	pipx \
-	python3-full \
-	pandoc \
-	upx \
+  direnv \
+  ripgrep \
+  pip \
+  pipx \
+  python3-full \
+  pandoc \
+  upx \
   fd-find \
   imagemagic
 
@@ -16,9 +16,9 @@ sudo apt-get install \
   xscreensaver-screensaver-bsod
 
 sudo apt install calibre \
-	transmission-gtk \
-	vlc \
-	loupe # image viever
+  transmission-gtk \
+  vlc \
+  loupe # image viever
 
 sudo apt install virtualbox virtualbox-ext-pack virtualbox-guest-additions-iso
 sudo usermod -aG vboxusers $USER
@@ -36,8 +36,8 @@ sudo cp /mnt/usr/share/xsessions/xmonad.desktop /usr/share/xsessions/xmonad.desk
 sudo chmod a+rw /dev/uinput # this is until reboot
 sudo usermod -a -G input behemoth
 sudo sh -c 'echo KERNEL=="uinput", GROUP="input", MODE="0660", OPTIONS+="static_node=uinput" >> /lib/udev/rules.d/udev.rules'
-sudo sh -c 'echo ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", RUN+="/bin/chgrp video /sys/class/backlight/%k/brightness"' >> /lib/udev/rules.d/backlight.rules
-sudo sh -c 'echo ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness"' >> /lib/udev/rules.d/backlight.rules
+sudo sh -c 'echo ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", RUN+="/bin/chgrp video /sys/class/backlight/%k/brightness"' >>/lib/udev/rules.d/backlight.rules
+sudo sh -c 'echo ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", RUN+="/bin/chmod g+w /sys/class/backlight/%k/brightness"' >>/lib/udev/rules.d/backlight.rules
 
 # install numen (voice input)
 sudo apt install -y golang-go scdoc libxkbcommon-dev
@@ -45,10 +45,10 @@ sudo apt install -y golang-go scdoc libxkbcommon-dev
 mkdir -p ~/Scratch/desktop
 git clone https://git.sr.ht/~geb/numen ~/Scratch/desktop/numen
 pushd ~/Scratch/desktop/numen
-  ./get-vosk.sh && sudo ./get-vosk.sh install
-  ./get-model.sh && sudo ./get-model.sh install
-  ./get-dotool.sh && sudo ./get-dotool.sh install
-  ./build.sh && sudo ./build.sh install
+./get-vosk.sh && sudo ./get-vosk.sh install
+./get-model.sh && sudo ./get-model.sh install
+./get-dotool.sh && sudo ./get-dotool.sh install
+./build.sh && sudo ./build.sh install
 popd
 
 #sudo chmod a+rw /sys/class/backlight/intel_backlight/brightness
@@ -67,7 +67,7 @@ sudo snap install slack
 # Install microsoft-edge
 # https://www.omgubuntu.co.uk/2021/01/how-to-install-edge-on-ubuntu-linux
 
-curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor >microsoft.gpg
 sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/trusted.gpg.d/
 sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-dev.list'
 sudo rm microsoft.gpg
@@ -98,13 +98,14 @@ curl https://raw.githubusercontent.com/blendle/kns/master/bin/ktx -o ~/bin/ktx &
 
 # krew
 (
-    set -x; cd "$(mktemp -d)" &&
-        OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
-        ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
-        KREW="krew-${OS}_${ARCH}" &&
-        curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
-        tar zxvf "${KREW}.tar.gz" &&
-        ./"${KREW}" install krew
+  set -x
+  cd "$(mktemp -d)" &&
+    OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
+    ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
+    KREW="krew-${OS}_${ARCH}" &&
+    curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/${KREW}.tar.gz" &&
+    tar zxvf "${KREW}.tar.gz" &&
+    ./"${KREW}" install krew
 )
 
 kubectl krew install stern
@@ -158,9 +159,9 @@ sudo chmod a+r /etc/apt/keyrings/docker.asc
 
 # Add the repository to Apt sources:
 echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" |
+  sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
 sudo apt-get update
 
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
@@ -176,12 +177,14 @@ flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flat
 flatpak install flathub net.mkiol.SpeechNote
 
 # install wireguard
+OLD_HOME="/mnt${HOME}"
 sudo apt install wireguard wireguard-tools
-sudo cp /mnt/home/behemoth/Scratch/python/algo/configs/*/wireguard/vas_phone_redmi.conf /etc/wireguard/wg0.conf
+sudo cp "${OLD_HOME}/Scratch/python/algo/configs/*/wireguard/vas_phone_redmi.conf" /etc/wireguard/wg0.conf
 
 # VSCode
 sudo snap install --classic code
-cp -r /mnt/home/behemoth/.config/Code /home/behemoth/.config/Code
+OLD_HOME="/mnt${HOME}"
+cp -r "${OLD_HOME}/.config/Code" ~/.config/Code
 # move extensions https://stackoverflow.com/questions/35773299/how-can-you-export-the-visual-studio-code-extension-list
 # code --list-extensions | xargs -L 1 echo code --install-extension
 
@@ -212,7 +215,6 @@ unzip -q SourceCodePro.zip -d res
 cp res/*.ttf $fontpath
 popd
 
-
 fc-cache -f
 
 # magit
@@ -232,5 +234,4 @@ cargo install --locked yazi-fm yazi-cli
 cargo install --locked television
 cargo install --locked fd-find
 cargo install --locked bat
-cargo install --locked zoxide                                                                                                 │
-
+cargo install --locked zoxide │

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-/home/behemoth/bin/switch-dark-theme &
+~/bin/switch-dark-theme &
 
 systemctl --user start voxtype
 
@@ -8,7 +8,7 @@ systemctl --user start voxtype
 cd ~/Scratch/js/hanzi-writer/character-server && cargo run &
 
 # proxy autoconfig
-busybox httpd -v -f -p 8910 -c /home/behemoth/Scratch/desktop/proxy_config/.httpd.conf -h /home/behemoth/Scratch/desktop/proxy_config &
+busybox httpd -v -f -p 8910 -c ~/Scratch/desktop/proxy_config/.httpd.conf -h ~/Scratch/desktop/proxy_config &
 
 # at-spi consumes cpu https://bbs.archlinux.org/viewtopic.php?id=237697
 export NO_AT_BRIDGE=1
@@ -24,7 +24,7 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 # separate layout for each window
 kbdd
 
-/home/behemoth/bin/xremap --watch=device,config /home/behemoth/.xremap.yml &
+~/bin/xremap --watch=device,config ~/.xremap.yml &
 
 xsetwacom --set "$(xsetwacom --list devices | grep STYLUS | awk '{print $9}')" Rotate half
 
@@ -34,9 +34,8 @@ xsetroot -cursor_name left_ptr
 # /usr/bin/xscreensaver &
 # xset dpms 0 0 0
 
-if pgrep "redshift" > /dev/null
-then
-    pkill redshift
+if pgrep "redshift" >/dev/null; then
+  pkill redshift
 fi
 redshift &
 
@@ -48,10 +47,10 @@ feh --bg-scale ~/ra.jpg
 xrdb -merge ~/.Xresources
 
 trayer --edge top --align right --SetDockType true --SetPartialStrut true \
- --expand true --width 10 --transparent true --tint 0x191970 --height 18 &
+  --expand true --width 10 --transparent true --tint 0x191970 --height 18 &
 
-if [ -x /usr/bin/nm-applet ] ; then
-   nm-applet --sm-disable &
+if [ -x /usr/bin/nm-applet ]; then
+  nm-applet --sm-disable &
 fi
 
 xmonad

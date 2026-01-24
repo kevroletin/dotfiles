@@ -16,10 +16,9 @@ if [ -d $HOME/.profile.d ]; then
 fi
 
 export SHELL=/usr/bin/zsh
-export EDITOR=/home/behemoth/bin/nvim
+export EDITOR=$HOME/bin/nvim
 export LC_ALL="en_US.UTF-8"
 export LANGUAGE="en_US.UTF-8"
 
-. "$HOME/.cargo/env"
-
-[ -f "/home/behemoth/.ghcup/env" ] && . "/home/behemoth/.ghcup/env" # ghcup-env
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+[ -f "$HOME/.ghcup/env" ] && . "$HOME/.ghcup/env"
