@@ -1,94 +1,384 @@
-#
-# Warning: this script will override your dotfiles! To do thit is # installs all dotfiles into empty directory and then copies result
-# into home directory.
-#
+#!/usr/bin/env nu
 
-set -xe
+#$env.HAS_SSH = ^ssh -T git@github.com e>| str contains success | default false
+$env.HAS_SSH = true
+let editor = "vim"
+let difftool = "kdiff3"
 
-configure_tools() {
+def negate [] { not $in }
+
+def assert_fake_home [] {
+  if (($env.FAKE_HOME | is-empty)
+      or ($env.FAKE_HOME != $env.HOME)
+      or ($env.FAKE_HOME == $env.OLD_HOME)
+      or ($env.PWD != $env.FAKE_HOME)
+     ) {
+    error make {
+      msg: $"This command wants FAKE_HOME. ($env.HOME) ($env.FAKE_HOME) ($env.PWD)"
+    }
+  }
+}
+
+def interactive_dialog [$header] {
+  if ($in | is-empty) { return [] }
+
+  let file = "dotfiles-interactive-dialog.txt"
+  let marker = "--- *** Edit below this line *** ---"
+
+  $header | save -f $file
+  $"\n($marker)\n\n" | save --append $file
+  $in | save --append $file
+
+  run-external $editor $file
+
+  let res = open $file | lines | skip until { str contains $marker } | skip 1 | each { str trim } | where { is-not-empty }
+  rm -f $file
+
+  $res
+}
+
+def install_system_tools [] {
     sudo apt-get update
     sudo apt-get install curl git myrepos vcsh
-    git config --global user.name "Vasiliy Kevroletin"
-    git config --global user.email kevroletin@gmail.com
-    git config --global push.default simple
 }
 
-run_post_install_scripts() {
-    WORKSPACE="/tmp/dotfiles-bootstrap.ba1f2511fc30423bdbb183fe33f3dd0f"
-    rm -rf $WORKSPACE
-    mkdir $WORKSPACE
-    cd $HOME
-    for i in $FAKE_HOME/.dotfiles_bootstrap.d/*.sh; do
-        filename=$(basename "$i")
-        filename="${filename%.*}"
-        export RESULT_PACKAGES_FILE=$WORKSPACE/$filename.txt
-        export RESULT_SCRIPT_FILE=$WORKSPACE/$filename.sh
-        sh $i
-    done
-
-    PACKAGES=$(cat $WORKSPACE/*.txt | tr '\n' ' ')
-    echo "=== Installing $PACKAGES ==="
-    sudo apt-get install $PACKAGES
-
-    echo "=== Running post install scripts ==="
-    sh $WORKSPACE/*.sh
+def configure_git [] {
+    # git config --global user.name "Vasiliy Kevroletin"
+    # git config --global user.email kevroletin@gmail.com
+    # git config --global push.default simple
+    # git config --global init.defaultBranch master
 }
 
-setup_fake_home() {
-    OLD_HOME=$HOME
-    FAKE_HOME="/tmp/fake-home.ba1f2511fc30423bdbb183fe33f3dd0f"
-    rm -rf $FAKE_HOME
-    mkdir $FAKE_HOME
-    export HOME=$FAKE_HOME
+# run_post_install_scripts() {
+#     WORKSPACE="/tmp/dotfiles-bootstrap.ba1f2511fc30423bdbb183fe33f3dd0f"
+#     rm -rf $WORKSPACE
+#     mkdir $WORKSPACE
+#     cd $HOME
+#     for i in $FAKE_HOME/.dotfiles_bootstrap.d/*.sh; do
+#         filename=$(basename "$i")
+#         filename="${filename%.*}"
+#         export RESULT_PACKAGES_FILE=$WORKSPACE/$filename.txt
+#         export RESULT_SCRIPT_FILE=$WORKSPACE/$filename.sh
+#         sh $i
+#     done
+#
+#     PACKAGES=$(cat $WORKSPACE/*.txt | tr '\n' ' ')
+#     echo "=== Installing $PACKAGES ==="
+#     sudo apt-get install $PACKAGES
+#
+#     echo "=== Running post install scripts ==="
+#     sh $WORKSPACE/*.sh
+# }
+
+def fake_home_env [] {
+  let fake_home = "/tmp/fake-home.ba1f2511fc30423bdbb183fe33f3dd0f"
+  { OLD_HOME: $env.HOME
+  , FAKE_HOME: $fake_home
+  , HOME: $fake_home
+  }
 }
 
-restore_home() {
-    HOME=$OLD_HOME
+def create_fake_home [] {
+  let new_env = fake_home_env
+  rm -rf $new_env.FAKE_HOME
+  mkdir p $new_env.FAKE_HOME
+  $new_env
 }
 
-install_mr() {
-    ssh -T git@github.com 2>&1 | grep -q success && vcsh clone git@github.com:kevroletin/dotfiles.mr.git mr || vcsh clone https://github.com/kevroletin/dotfiles.mr mr
+def with-new-fake-home [it] {
+  with-env (create_fake_home) {
+    cd $env.FAKE_HOME
+    do $it
+  }
 }
 
-ask_and_install_dotfile_repos() {
-    COMPONENTS=""
-    for i in dotfiles.console,console dotfiles.cygwin,cygwin dotfiles.desktop,desktop .spacemacs.d,emacs; do
-        short=${i#*,}
-        while true; do
-            read -p "Do you wish to install $short? " yn
-            case $yn in
-                [Yy]* ) COMPONENTS="$COMPONENTS $i"; break;;
-                [Nn]* ) break;;
-                * ) echo "Please answer yes or no.";;
-            esac
-        done
-    done
-    ssh -T git@github.com 2>&1 | grep -q success
-    SSH_CONFIGURED_RET=$?
-    for i in $COMPONENTS; do
-        long=${i%,*}
-        short=${i#*,}
-        DEST=$HOME/.config/vcsh/repo.d/$i.git
-        [ $SSH_CONFIGURED_RET -eq 0 ] && vcsh clone git@github.com:kevroletin/$long.git $short || vcsh clone https://github.com/kevroletin/$long.git $short
-    done
+def with-existing-fake-home [it] {
+  with-env (fake_home_env) {
+    cd $env.FAKE_HOME
+    do $it
+  }
 }
 
-copy_files_to_home() {
-    # vcsh saves absolute paths
-    find $FAKE_HOME/.config/vcsh -name config -exec sed -i "s#$FAKE_HOME#$HOME#g" {} +
-    rsync -a $FAKE_HOME/ $HOME
+def gh [] {
+  let repo = $in
+  if ($env.HAS_SSH) {
+      $"git@github.com:($repo).git"
+  } else {
+      $"clone https://github.com/($repo)"
+  }
 }
 
-echo "Checking if github is accessable via ssh"
-(ssh -T git@github.com 2>&1 | grep -q success) || (echo "Please configure ssh keys to access github"; exit 1)
+def interactive_link_mr [] {
+  assert_fake_home
 
-configure_tools
-setup_fake_home
-    cd $HOME
-    install_mr
-    ask_and_install_dotfile_repos
-    mr update
-restore_home
-cd $HOME
-copy_files_to_home
-run_post_install_scripts
+  let dialog_file = $"($env.FAKE_HOME)/choose_mr_groups.txt"
+  let options = do { cd .config/mr/available.d; ls } | get name | str join "\n"
+  let msg = $'mr tool manages groups of repositiries
+this confis has several groups defined, choose which ones to use:
+---
+($options)
+'
+
+  $msg | save -f $dialog_file
+  run-external $editor $dialog_file
+  let user_choice = open $dialog_file | lines | skip until { str contains "---" } | skip 1 | each { str trim } | compact
+  rm -f $dialog_file
+
+  $user_choice | each {
+    ln -s -r -f $"($env.FAKE_HOME)/.config/mr/available.d/($in)" $"($env.FAKE_HOME)/.config/mr/config.d/($in)"
+  }
+  $user_choice
+}
+
+def clone_into_fake_home [] {
+  assert_fake_home 
+
+  vcsh clone ("kevroletin/dotfiles" | gh) dotfiles
+  interactive_link_mr
+  mr update
+}
+
+def to_old_path [] {
+  $"($env.OLD_HOME)/($in)"
+}
+
+def compare_old_home_only_files [] {
+  assert_fake_home
+
+
+  ls -a **/* 
+  | where type == file
+  | get name
+  | each { |file|
+    let exists = $file | to_old_path | path exists
+    { name: $file
+    , is-conflict: (
+        if ($exists) {
+          (open -r $file) != (open -r ($file | to_old_path))
+        } else {
+          false
+        }
+      )
+    , exists: $exists
+    }
+  }
+}
+
+
+def all_path_prefixes [] {
+  if ($in | is-empty) {
+    []
+  } else {
+    let xs = $in | path split
+    0..($xs | length | $in - 1) | each { |idx| ($xs | slice 0..$idx) } | each { path join }
+  }
+}
+
+def compute_file_conflicts [--ls-res: table] {
+  assert_fake_home
+
+  $ls_res
+  | default (ls -a **/*)
+  | where type == file
+  | get name
+  | each { |file|
+    let exists = $file | to_old_path | path exists
+    { name: $file
+    , is-conflict: (
+        if ($exists) {
+          (open -r $file) != (open -r ($file | to_old_path))
+        } else {
+          false
+        }
+      )
+    , exists: $exists
+    , type: file
+    }
+  }
+}
+
+def compute_dir_conflicts [--ls-res: table, --file_conflicts: table] {
+  assert_fake_home
+
+  let ls_res = $ls_res | default (ls -a **/*)
+  let file_conflicts = $file_conflicts | default (compute_file_conflicts)
+
+  let recursive_dir_conflicts = $file_conflicts
+  | where is-conflict
+  | get name
+  | each { path dirname | all_path_prefixes }
+  | flatten | each { [$in, true] } | into record
+
+  $ls_res | where type == dir
+  | get name
+  | each { |dir|
+    { name: $dir
+    , is-conflict: ($recursive_dir_conflicts | get --optional $dir | default false)
+    , exists: ($dir | to_old_path | path exists)
+    , type: dir
+    }
+  }
+}
+
+def compute_git_repo_conflicts [--ls-res: table, --file_conflicts: table, --dir_conflicts: table] {
+    let dirs = $dir_conflicts | default (compute_dir_conflicts --ls-res=$ls_res --file_conflicts=$file_conflicts)
+
+    let repos =  $dirs
+    | where { $in.name | path basename | $in == ".git" }
+    | each { {($in.name | path dirname): true} }
+    | into record
+
+    $dirs | where { |dir| ($repos | get --optional $dir.name | default false) }
+}
+
+def compare_old_home [] {
+  assert_fake_home
+
+  let ls_res = ls -a **/* 
+  let file_conflicts = compute_file_conflicts --ls-res=$ls_res
+
+  { files: $file_conflicts
+  , dirs: (compute_dir_conflicts --ls-res=$ls_res --file_conflicts=$file_conflicts)
+  }
+}
+
+def find_conflicts [] { compare_old_home_only_files | where is-conflict | get name }
+
+def interactiv_resolve_conflicts [] {
+  assert_fake_home
+
+  let ls_res = ls -a **/* 
+  let files = compute_file_conflicts --ls-res=$ls_res
+  let dirs = compute_dir_conflicts --ls-res=$ls_res --file_conflicts=$files
+  let repos = compute_git_repo_conflicts --ls-res=$ls_res --file_conflicts=$files --dir_conflicts=$dirs
+
+  let ignore_dirs = do {
+    let conflict_num = $repos | where is-conflict | length
+    let num = $repos | length
+    let msg = $"
+There are ($num) git repos. ($conflict_num) of which already exist in the system.
+
+The way to deal with git directories is to ignore their content in dialogs and
+then to replace the whole directory with new content.
+
+Below is the list of directories which we will ignore in interactive dialogs and
+will replace with the fresh intallation. It consists of normal git repos and
+.config/vcsh/repo.d/dotfiles.git
+
+You can edit this list:
+"
+    $repos | get name | append ".config/vcsh/repo.d/dotfiles.git" | interactive_dialog $msg
+  }
+
+  print $ignore_dirs
+
+  def is_ok [] {
+    let filename = $in
+    not ($ignore_dirs | any { |ignored| $filename | str starts-with $ignored })
+  }
+
+  let clean_files = do {
+    let clean = $files 
+    | where ($it.name | is_ok) and (not $it.is-conflict) and (not $it.exists)
+
+    let msg = $"
+There are ($clean | length) new files which have no conflicts.
+We will copy these files as-is.
+Please review/edit the list below:
+"
+    $clean | get name | interactive_dialog $msg
+  }
+
+  let conflict_files = do {
+    let conflicts = $files | where { $in.name | is_ok } | where is-conflict
+
+    let $num = $conflicts | length
+    let msg = $"
+There are ($num) file conflicts, they are listed below.
+Please edit the list to specify which files to copy.
+In the next step we would propose to run diff for selected files:
+"
+    $conflicts | get name | interactive_dialog $msg
+  }
+
+  let diff_files = do {
+    let layout = [ {"on the left": "existing system config", "on the right": "new config"}
+                  , {"on the left": $env.OLD_HOME, "on the right": $env.HOME} ]
+    let msg = $"
+Number of conflicts: ($conflict_files | length)
+Difftool: ($difftool)
+
+($layout | to md --pretty | into string)
+
+Note: if you will copy changes into a file on the right, these changes will be
+copyied into the system in the next steps.
+
+Edit the list below to specify which files to diff:
+"
+    $conflict_files | interactive_dialog $msg
+  }
+
+  $diff_files | each { run-external $difftool ($in | to_old_path) ($in) | ignore }
+
+  let $res = "do.nu"
+  let header = $'#!/usr/bin/env nu
+
+cd "($env.fAKE_HOME)"
+
+' | save -f $res
+
+  $ignore_dirs | each {
+    let from = $in
+    let to = ($in | to_old_path)
+
+    [ $'try { rm -r "($to)" }'
+    , $'cp -r "($from)" "($to)"']
+  } | flatten | uniq | save --append $res
+
+  "\n" | save --append $res
+
+  $clean_files | each {
+    let from = $in
+    let to = ($in | to_old_path)
+
+    [ $'mkdir "($to | path dirname)"'
+    , $'cp "($from)" "($to)"']
+  } | flatten | uniq | save --append $res
+
+  "\n" | save --append $res
+
+  $conflict_files | each {
+    let from = $in
+    let to = ($in | to_old_path)
+
+    $'cp "($from)" "($to)"'
+  } | save --append $res
+
+  run-external $editor $res
+}
+
+def "main continue" [] {
+  with-existing-fake-home {
+    interactiv_resolve_conflicts
+  }
+}
+
+def "main clone" [] {
+  with-new-fake-home {
+    clone_into_fake_home
+    interactiv_resolve_conflicts
+  }
+}
+
+def "main install" [] {
+  with-new-fake-home {
+    clone_into_fake_home
+    interactiv_resolve_conflicts
+  }
+}
+
+def main [] {
+}
+
+#copy_files_to_home
+#run_post_install_scripts

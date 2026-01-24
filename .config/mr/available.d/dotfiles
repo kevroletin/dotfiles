@@ -1,4 +1,0 @@
-[$HOME/.config/vcsh/repo.d/dotfiles.git]
-checkout = ssh -T git@github.com 2>&1 | grep -q success && vcsh clone git@github.com:kevroletin/dotfiles.git dotfiles || vcsh clone https://github.com/kevroletin/dotfiles.git dotfiles
-
-
