@@ -1,0 +1,63 @@
+
+# open, rename, remove and shell
+[mgr]
+
+prepend_keymap = [
+	{ on = "M", run = ["plugin toggle-pane min-parent", "plugin toggle-pane min-preview"], desc = "Maximize current pane" },
+
+  # new commands from the plugin
+	{ on = "K", run = "plugin augment-command -- parent_arrow -1", desc = "Up parent directory" },
+	{ on = "J", run = "plugin augment-command -- parent_arrow 1", desc = "Down parent directory" },
+	{ on = ["g", "f"], run = "plugin augment-command -- first_file", desc = "Jump to the first file" },
+
+  # augment existing commands
+  # https://github.com/hankertrix/augment-command.yazi
+	{ on = "o",         run = "plugin augment-command -- open",                        desc = "Open selected files" },
+	{ on = "O",         run = "plugin augment-command -- open --interactive",          desc = "Open selected files interactively" },
+	{ on = "<Enter>",   run = "plugin augment-command -- open",                        desc = "Open selected files" },
+	{ on = "<S-Enter>", run = "plugin augment-command -- open --interactive",          desc = "Open selected files interactively" },
+	{ on = "r",         run = "plugin augment-command -- rename --cursor=before_ext",  desc = "Rename selected file(s)" },
+	{ on = "d",         run = "plugin augment-command -- remove",                      desc = "Trash selected files" },
+	{ on = "D",         run = "plugin augment-command -- remove --permanently",        desc = "Permanently delete selected files" },
+  ## { on = ";",         run = "plugin augment-command -- shell --interactive",         desc = "Run a shell command" },
+  ## { on = ":",         run = "plugin augment-command -- shell --block --interactive", desc = "Run a shell command (block until finishes)" },
+	{ on = "h", run = "plugin augment-command -- leave", desc = "Back to the parent directory" },
+	{ on = "l", run = "plugin augment-command -- enter", desc = "Enter the child directory" },
+	{ on = "<Left>",  run = "plugin augment-command -- leave", desc = "Back to the parent directory" },
+	{ on = "<Right>", run = "plugin augment-command -- enter", desc = "Enter the child directory" },
+	{ on = [ "c", "c" ], run = "plugin augment-command -- copy path",             desc = "Copy the file path" },
+	{ on = [ "c", "d" ], run = "plugin augment-command -- copy dirname",          desc = "Copy the directory path" },
+	{ on = [ "c", "f" ], run = "plugin augment-command -- copy filename",         desc = "Copy the filename" },
+	{ on = [ "c", "n" ], run = "plugin augment-command -- copy name_without_ext", desc = "Copy the filename without extension" },
+	# { on = "a",         run = "plugin augment-command -- create",                      desc = "Create a file (ends with / for directories)" },
+	# { on = "p",         run = "plugin augment-command -- paste",                       desc = "Paste yanked files" },
+	# { on = "P",         run = "plugin augment-command -- paste --force",               desc = "Paste yanked files (overwrite if the destination exists)" },
+	# { on = "t", run = "plugin augment-command -- tab_create --current", desc = "Create a new tab with CWD" },
+	# { on = "1", run = "plugin augment-command -- tab_switch 0", desc = "Switch to first tab" },
+	# { on = "2", run = "plugin augment-command -- tab_switch 1", desc = "Switch to second tab" },
+	# { on = "3", run = "plugin augment-command -- tab_switch 2", desc = "Switch to third tab" },
+	# { on = "4", run = "plugin augment-command -- tab_switch 3", desc = "Switch to fourth tab" },
+	# { on = "5", run = "plugin augment-command -- tab_switch 4", desc = "Switch to fifth tab" },
+	# { on = "6", run = "plugin augment-command -- tab_switch 5", desc = "Switch to sixth tab" },
+	# { on = "7", run = "plugin augment-command -- tab_switch 6", desc = "Switch to seventh tab" },
+	# { on = "8", run = "plugin augment-command -- tab_switch 7", desc = "Switch to eighth tab" },
+	# { on = "9", run = "plugin augment-command -- tab_switch 8", desc = "Switch to ninth tab" },
+	# { on = "[", run = "plugin augment-command -- tab_switch -1 --relative", desc = "Switch to previous tab" },
+	# { on = "]", run = "plugin augment-command -- tab_switch 1 --relative",  desc = "Switch to next tab" },
+	# { on = "q",     run = "plugin augment-command -- quit",               desc = "Quit the process" },
+	# { on = "Q",     run = "plugin augment-command -- quit --no-cwd-file", desc = "Quit without outputting cwd-file" },
+	# { on = "k", run = "plugin augment-command -- arrow prev", desc = "Previous file" },
+	# { on = "j", run = "plugin augment-command -- arrow next", desc = "Next file" },
+	# { on = "<Up>",   run = "plugin augment-command -- arrow prev", desc = "Previous file" },
+	# { on = "<Down>", run = "plugin augment-command -- arrow next", desc = "Next file" },
+	# { on = "<C-u>", run = "plugin augment-command -- arrow -50%",  desc = "Move cursor up half page" },
+	# { on = "<C-d>", run = "plugin augment-command -- arrow 50%",   desc = "Move cursor down half page" },
+	# { on = "<C-b>", run = "plugin augment-command -- arrow -100%", desc = "Move cursor up one page" },
+	# { on = "<C-f>", run = "plugin augment-command -- arrow 100%",  desc = "Move cursor down one page" },
+	# { on = "<S-PageUp>",   run = "plugin augment-command -- arrow -50%",  desc = "Move cursor up half page" },
+	# { on = "<S-PageDown>", run = "plugin augment-command -- arrow 50%",   desc = "Move cursor down half page" },
+	# { on = "<PageUp>",     run = "plugin augment-command -- arrow -100%", desc = "Move cursor up one page" },
+	# { on = "<PageDown>",   run = "plugin augment-command -- arrow 100%",  desc = "Move cursor down one page" },
+	# { on = [ "g", "g" ], run = "plugin augment-command -- arrow top", desc = "Go to top" },
+	{ on = "G",          run = "plugin augment-command -- arrow bot", desc = "Go to bottom" },
+]

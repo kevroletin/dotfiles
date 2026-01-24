@@ -1,0 +1,14 @@
+[$HOME/.config/vcsh/repo.d/console.git]
+checkout = ssh -T git@github.com 2>&1 | grep -q success && vcsh clone git@github.com:kevroletin/dotfiles.console.git console || vcsh clone https://github.com/kevroletin/dotfiles.console.git console
+
+[$HOME/.tmux/plugins/tpm]
+checkout = git clone --depth 1 https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+push = :
+
+[$HOME/.fzf]
+checkout = git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+push = :
+
+[$HOME/.zprezto]
+checkout = git clone --depth 1 --recursive https://github.com/sorin-ionescu/prezto.git ~/.zprezto
+update = git pull && git submodule update --init --recursive

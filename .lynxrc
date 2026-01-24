@@ -1,0 +1,16 @@
+accept_all_case_sensitive_searching=off
+cookies=on
+emacs_keys=off
+keypad_mode=LINKS_AND_FIELDS_ARE_NUMBERED
+lineedit_mode=Default Binding
+preferred_language=en
+run_all_execution_links=off
+run_execution_links_on_local_files=off
+select_popups=on
+show_color=default
+show_cursor=on
+sub_bookmarks=OFF
+user_mode=ADVANCED
+verbose_images=on
+vi_keys=on
+visited_links=LAST_REVERSED

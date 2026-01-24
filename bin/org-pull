@@ -1,0 +1,17 @@
+#!/bin/bash
+
+pull() {
+    git pull
+}
+
+pushd ~/org/personal
+pull || true
+popd
+
+pushd ~/org/work
+pull || true
+popd
+
+pushd ~/org/common
+pull || true
+popd

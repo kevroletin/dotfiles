@@ -1,0 +1,19 @@
+#!/bin/bash
+
+commit() {
+  git add -u
+  git commit -m "`date`"
+  git push origin master
+}
+
+pushd ~/org/personal
+commit || true
+popd
+
+pushd ~/org/work
+commit || true
+popd
+
+pushd ~/org/common
+commit || true
+popd
