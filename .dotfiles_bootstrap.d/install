@@ -270,8 +270,6 @@ You can edit this list:
     $repos | get name | append ".config/vcsh/repo.d/dotfiles.git" | interactive_dialog $msg
   }
 
-  print $ignore_dirs
-
   def is_ok [] {
     let filename = $in
     not ($ignore_dirs | any { |ignored| $filename | str starts-with $ignored })
@@ -355,6 +353,7 @@ cd "($env.fAKE_HOME)"
   } | save --append $res
 
   run-external $editor $res
+  print $"nu '($env.FAKE_HOME)/($res)'"
 }
 
 def "main continue" [] {

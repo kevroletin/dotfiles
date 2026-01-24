@@ -1,12 +1,3 @@
-[url "git@gitlab.com:coinweb/experimental/bitcoin-graphql.git"]
-  insteadOf = https://gitlab.com/coinweb/experimental/bitcoin-graphql.git
-[url "git@gitlab.com:coinweb/forks/elrond-sdk.git"]
-  insteadOf = https://gitlab.com/coinweb/forks/elrond-sdk.git
-[url "git@gitlab.com:coinweb/forks/rust-bitcoin.git"]
-  insteadOf = https://gitlab.com/coinweb/forks/rust-bitcoin.git
-[url "git@gitlab.com:coinweb/forks/typescript-definitions-derive.git"]
-  insteadOf = https://gitlab.com/coinweb/forks/typescript-definitions-derive.git
-
 [user]
   name = Vasiliy Kevroletin
   email = kevroletin@gmail.com
@@ -25,18 +16,12 @@
 [credential "https://dev.azure.com"]
   useHttpPath = true
 [interactive]
-    diffFilter = delta --color-only
+  diffFilter = delta --color-only
 [delta]
-    navigate = true    # use n and N to move between diff sections
-
-    # delta detects terminal colors automatically; set one of these to disable auto-detection
-    # dark = true
-    # light = true
-
+  navigate = true
 [merge]
-    conflictstyle = diff3
-
+  conflictstyle = diff3
 [diff]
-    colorMoved = default
+  colorMoved = default
 [pull]
-	rebase = false
+  rebase = false
