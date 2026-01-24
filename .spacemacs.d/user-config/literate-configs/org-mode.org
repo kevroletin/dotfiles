@@ -1,0 +1,185 @@
+#+TITLE: Starter Kit Org
+#+OPTIONS: toc:nil num:nil ^:nil
+
+* Own workflow
+
+Org acutally uses this variable only under rare circumstances, like
+when filing remember notes in an interactive way and prompting you for
+an Org file to put the note into.
+#+begin_src emacs-lisp
+  (setq org-directory "~/org")
+#+end_src
+
+Agenda should be build from files listed below. Create missed files.
+#+begin_src emacs-lisp
+  (defun touch-file (filename)
+    (with-temp-buffer (write-file filename)))
+
+  (defun ensure-file-exists (filename)
+    (unless (file-exists-p filename) (touch-file filename)))
+
+  (let ((personal-org-files (list "~/org/personal/gtd.org"
+                                  "~/org/work/work.org")))
+    (dolist (it personal-org-files) (ensure-file-exists it)))
+  (setq org-agenda-files (list "~/org/personal" "~/org/work"))
+#+end_src
+
+The default archive location is a file in the same directory as the current
+file, with the name derived by appending _archive to the current file name.
+
+Clocking info and status changes will be wrapped into a drawers to reduce noise.
+#+begin_src emacs-lisp
+(setq org-clock-into-drawer t)
+(setq org-log-into-drawer t)
+#+end_src
+
+List of TODO entry keyword sequences and their interpretation. [[https://orgmode.org/manual/Tracking-TODO-state-changes.html][Symbols in
+brackets]] define if changing status requires writing description:
++ ‘!’ (for a timestamp)
++ ‘@’ (for a note with timestamp)
+#+begin_src emacs-lisp
+(setq org-todo-keywords
+      (quote ((sequence "TODO(t)" "NEW(n)"  "|" "DONE(d)")
+              (sequence "WAITING(w@)" "MAYBE(m)" "|" "CANCELLED(c)"))))
+#+end_src
+
+Coloring have meaning. Red color disturbs me so NEW task are red -
+they should be quickly performed or turned into green. TODO tasks are
+green because green stimulates action. Other colors are random.
+#+begin_src emacs-lisp
+(setq org-todo-keyword-faces
+      (quote (("TODO"      :foreground "green"  :weight bold)
+              ("NEW"       :foreground "red"    :weight bold)
+              ("DONE"      :foreground "gray"   :weight bold)
+              ("WAITING"   :foreground "orange" :weight bold)
+              ("MAYBE"     :foreground "yellow" :weight bold)
+              ("CANCELLED" :foreground "gray"   :weight bold))))
+#+end_src
+
+Task with :prj: tag is a project. Tell org-mode how to detect stall
+projects (i.e. projects without tasks).
+#+begin_src emacs-lisp
+  (setq org-tags-exclude-from-inheritance '("prj")
+        org-stuck-projects '("+prj"
+                             ("TODO" "NEW")))
+#+end_src
+
+* Notes and refile
+
+Configure "capture" feature for quick notes saving
+#+begin_src emacs-lisp
+  (setq org-default-notes-file "~/org/personal/refile.org")
+#+end_src
+
+#+begin_src emacs-lisp
+  (setq org-capture-templates
+        '(("T" "(W) New task" entry (file "~/org/work/refile.org")
+           "* NEW %?\n  %i\n")
+          ("N" "(W) Note" entry (file "~/org/work/refile.org")
+           "* %?\n  %i\n")
+          ("t" "(H) New task" entry (file "~/org/personal/refile.org")
+           "* NEW %?\n  %i\n")
+          ("n" "(H) Note" entry (file "~/org/personal/refile.org")
+           "* %?\n  %i\n")))
+#+end_src
+
+[5], [6]
+#+begin_src emacs-lisp
+  (setq org-refile-targets '((nil :maxlevel . 9)
+                                  (org-agenda-files :maxlevel . 9)))
+  (setq org-outline-path-complete-in-steps nil)         ; Refile in a single go
+  (setq org-refile-use-outline-path t)                  ; Show full paths for refiling
+#+end_src
+* Custom agenda views
+
+Main idea is simple:
++ track work-related and personal activities in same way
++ but separate them in all views except for daily agenda
+
+Filters below are shortcuts for daily and weekly reviews. We track reading list
+separately to reduce amount of noise.
+
+Shortcuts:
++ a :: agenda
++ n :: new and refile
++ t :: todos
++ h :: home (H - home tasks)
++ w :: work (W - work tasks)
++ r :: reading list
+
+See [4] for advanced filtering
+#+begin_src emacs-lisp
+  (setq org-agenda-custom-commands
+        '(("a" agenda)
+          ("n" "NEW list"
+           ((todo "NEW" ((org-agenda-overriding-header "Personal NEW task")
+                         (org-agenda-files (list "~/org/personal"))))
+            (tags-todo "+REFILE-TODO=\"NEW\"" ((org-agenda-overriding-header "Personal Refile tasks (except NEW)")
+                                               (org-agenda-files (list "~/org/personal"))))
+            (todo "NEW" ((org-agenda-overriding-header "Work NEW task")
+                         (org-agenda-files (list "~/org/work"))))
+            (tags-todo "+REFILE-TODO=\"NEW\"" ((org-agenda-overriding-header "Work Refile tasks (except NEW)")
+                                               (org-agenda-files (list "~/org/work"))))))
+          ("t" "TODO list"
+           ((tags-todo "TODO=\"TODO=\"-habit-reading_list"
+                       ((org-agenda-overriding-header "Personal TODO task")
+                        (org-agenda-files (list "~/org/personal"))))
+            (tags-todo "TODO=\"TODO\"-habit-reading_list"
+                       ((org-agenda-overriding-header "Work TODO task")
+                        (org-agenda-files (list "~/org/work"))))))
+          ("H" "Personal tasks" tags-todo
+                                "-habit-reading_list"
+                                ((org-agenda-overriding-header "All personal task")
+                                 (org-agenda-files (list "~/org/personal"))))
+          ("W" "Work tasks" tags-todo
+                            "-habit-reading_list"
+                            ((org-agenda-overriding-header "All work task")
+                             (org-agenda-files (list "~/org/work"))))
+          ("h" "Review home tasks"
+           ((agenda)
+            (todo "NEW" ((org-agenda-overriding-header "NEW")))
+            (tags-todo "+TODO=\"TODO\"-habit-reading_list" ((org-agenda-overriding-header "TODOs")))
+            (tags-todo "-TODO=\"TODO\"-TODO=\"NEW\"-habit-reading_list" ((org-agenda-overriding-header "Not yet TODOs")))
+            (tags-todo "+REFILE"))
+           ((org-agenda-files (list "~/org/personal"))))
+          ("w" "Review work tasks"
+           ((agenda)
+            (todo "NEW")
+            (tags-todo "+TODO=\"TODO\"-habit-reading_list")
+            (tags-todo "-TODO=\"TODO\"-TODO=\"NEW\"-habit-reading_list")
+            (tags-todo "+REFILE"))
+           ((org-agenda-files (list "~/org/work"))))
+          ("r" "Review reading list"
+           ((tags-todo "+TODO=\"TODO\"-habit+reading_list")
+            (tags-todo "-TODO=\"TODO\"-habit+reading_list"))
+           ((org-agenda-files (list "~/org/work" "~/org/personal"))))))
+#+end_src
+* Flyspell customization
+
+Indicate grammar mistakes using red wave underline (like in graphical
+text editors).
+
+Advice: to investigate font face under cursor use what-cursor-position
+with a prefix argument /(keyboard shortcut is C-u C-x =)/.
+#+begin_src emacs-lisp
+(custom-set-faces
+ '(flyspell-duplicate ((t (:underline (:color "dark orange" :style wave :inherit unspecified)))))
+ '(flyspell-incorrect ((t (:underline (:color "red" :style wave :inherit unspecified))))))
+#+end_src
+
+* Appearance
+
+Hack since we doesn't consider which theme is enabled
+#+begin_src emacs-lisp
+  (custom-set-faces
+    '(outline-2 ((t (:foreground "#8AE234")))))
+#+end_src
+
+* Links
+
+[1] http://juanreyero.com/article/emacs/org-teams.html
+[2] http://doc.norang.ca/org-mode.html
+[3] https://hamberg.no/gtd/
+[4] http://orgmode.org/worg/org-tutorials/advanced-searching.html
+[5] http://orgmode.org/manual/Refile-and-copy.html
+[6] https://www.reddit.com/r/emacs/comments/4366f9/how_do_orgrefiletargets_work/
