@@ -43,3 +43,6 @@ rules = [
   { name = "*", use = [ "open", "reveal" ] },
 ]
 
+[[plugin.augment-command]]
+skip_single_subdirectory_on_enter = false
+skip_single_subdirectory_on_leave = false
