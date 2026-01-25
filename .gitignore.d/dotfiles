@@ -14,7 +14,6 @@
 !/.config/dotfiles/install.nu
 !/.config/dotfiles/scripts/console.sh
 !/.config/dotfiles/scripts/desktop.sh
-!/.config/dunst/dunstrc
 !/.config/dunst/dunstrc.dark
 !/.config/dunst/dunstrc.light
 !/.config/gdb/python/hook.in
@@ -27,6 +26,7 @@
 !/.config/mr/available.d/emacs
 !/.config/mr/available.d/.gitkeep
 !/.config/mr/available.d/urxvt
+!/.config/mr/available.d/xmonad
 !/.config/mr/available.d/zsh
 !/.config/mr/config.d/.gitkeep
 !/.config/nvim/.gitignore
@@ -36,9 +36,10 @@
 !/.config/nvim/lua/config/keymaps.lua
 !/.config/nvim/lua/config/lazy.lua
 !/.config/nvim/lua/config/options.lua
-!/.config/nvim/lua/plugins/colorscheme.lua
 !/.config/nvim/lua/plugins/disable-indent-guides.lua
-!/.config/nvim/lua/plugins/user_config.lua
+!/.config/nvim/lua/plugins/disable-mini-pairs.lua
+!/.config/nvim/lua/plugins/enable-solarized-theme.lua
+!/.config/nvim/lua/plugins/lsp.lua
 !/.config/nvim/.neoconf.json
 !/.config/nvim/stylua.toml
 !/.config/ranger/rc.conf
