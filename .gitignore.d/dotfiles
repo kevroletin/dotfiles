@@ -3,8 +3,8 @@
 !/.arbtt
 !/.arbtt/categorize.cfg
 !/.config
-!/.config/dunst
-!/.config/dunst/dunstrc
+!/.config/dunst/dunstrc.dark
+!/.config/dunst/dunstrc.light
 !/.config/gdb
 !/.config/gdb/python
 !/.config/gdb/python/Makefile.am
@@ -16,6 +16,10 @@
 !/.config/gdb/python/libstdcxx/v6/__init__.py
 !/.config/gdb/python/libstdcxx/v6/printers.py
 !/.config/gdb/python/libstdcxx/v6/xmethods.py
+!/.config/gotfiles
+!/.config/gotfiles/console.sh
+!/.config/gotfiles/desktop.sh
+!/.config/gotfiles/install
 !/.config/mr
 !/.config/mr/available.d
 !/.config/mr/available.d/.gitkeep
@@ -25,10 +29,6 @@
 !/.config/ranger/rc.conf
 !/.config/ranger/rifle.conf
 !/.config/redshift.conf
-!/.dotfiles_bootstrap.d
-!/.dotfiles_bootstrap.d/console.sh
-!/.dotfiles_bootstrap.d/desktop.sh
-!/.dotfiles_bootstrap.d/install
 !/.gdbinit
 !/.ghc
 !/.ghc/ghci.conf
