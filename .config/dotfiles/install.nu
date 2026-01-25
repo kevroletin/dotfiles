@@ -1,9 +1,17 @@
 #!/usr/bin/env nu
 
-#$env.HAS_SSH = ^ssh -T git@github.com e>| str contains success | default false
-$env.HAS_SSH = true
-let editor = "vim"
-let difftool = "kdiff3"
+let use_ssh = if ($env.USE_SSH? | is-not-empty) {
+  not ($env.USE_SSH in ["false", "no", "n"])
+} else {
+  printf "Checking if github accessable through ssh"
+  ^ssh -T git@github.com e>| str contains success
+}
+let editor = $env.EDITOR? | default "vim"
+let difftool = $env.DIFF_TOOL? | default "kdiff3"
+
+print $"use ssh: ($use_ssh)"
+print $"editor: ($editor)"
+print $"difftool: ($difftool)"
 
 def negate [] { not $in }
 
@@ -29,46 +37,13 @@ def interactive_dialog [$header] {
   $"\n($marker)\n\n" | save --append $file
   $in | save --append $file
 
-  run-external $editor $file
+  open-in-editor $file
 
   let res = open $file | lines | skip until { str contains $marker } | skip 1 | each { str trim } | where { is-not-empty }
   rm -f $file
 
   $res
 }
-
-def install_system_tools [] {
-    sudo apt-get update
-    sudo apt-get install curl git myrepos vcsh
-}
-
-def configure_git [] {
-    # git config --global user.name "Vasiliy Kevroletin"
-    # git config --global user.email kevroletin@gmail.com
-    # git config --global push.default simple
-    # git config --global init.defaultBranch master
-}
-
-# run_post_install_scripts() {
-#     WORKSPACE="/tmp/dotfiles-bootstrap.ba1f2511fc30423bdbb183fe33f3dd0f"
-#     rm -rf $WORKSPACE
-#     mkdir $WORKSPACE
-#     cd $HOME
-#     for i in $FAKE_HOME/.dotfiles_bootstrap.d/*.sh; do
-#         filename=$(basename "$i")
-#         filename="${filename%.*}"
-#         export RESULT_PACKAGES_FILE=$WORKSPACE/$filename.txt
-#         export RESULT_SCRIPT_FILE=$WORKSPACE/$filename.sh
-#         sh $i
-#     done
-#
-#     PACKAGES=$(cat $WORKSPACE/*.txt | tr '\n' ' ')
-#     echo "=== Installing $PACKAGES ==="
-#     sudo apt-get install $PACKAGES
-#
-#     echo "=== Running post install scripts ==="
-#     sh $WORKSPACE/*.sh
-# }
 
 def fake_home_env [] {
   let fake_home = "/tmp/fake-home.ba1f2511fc30423bdbb183fe33f3dd0f"
@@ -85,6 +60,16 @@ def create_fake_home [] {
   $new_env
 }
 
+def with-old-home [it] {
+  with-env { HOME: $env.OLD_HOME } $it
+}
+
+def open-in-editor [file] {
+  with-old-home {
+    run-external $editor $file
+  }
+}
+
 def with-new-fake-home [it] {
   with-env (create_fake_home) {
     cd $env.FAKE_HOME
@@ -99,44 +84,39 @@ def with-existing-fake-home [it] {
   }
 }
 
-def gh [] {
+def gh-url [] {
   let repo = $in
-  if ($env.HAS_SSH) {
+  if ($use_ssh) {
       $"git@github.com:($repo).git"
   } else {
-      $"clone https://github.com/($repo)"
+      $"https://github.com/($repo)"
   }
 }
 
 def interactive_link_mr [] {
   assert_fake_home
 
-  let dialog_file = $"($env.FAKE_HOME)/choose_mr_groups.txt"
-  let options = do { cd .config/mr/available.d; ls } | get name | str join "\n"
+  let options = do { cd .config/mr/available.d; ls } | get name
   let msg = $'mr tool manages groups of repositiries
 this confis has several groups defined, choose which ones to use:
----
-($options)
 '
-
-  $msg | save -f $dialog_file
-  run-external $editor $dialog_file
-  let user_choice = open $dialog_file | lines | skip until { str contains "---" } | skip 1 | each { str trim } | compact
-  rm -f $dialog_file
-
-  $user_choice | each {
-    ln -s -r -f $"($env.FAKE_HOME)/.config/mr/available.d/($in)" $"($env.FAKE_HOME)/.config/mr/config.d/($in)"
+  let res = $options | interactive_dialog $msg
+  $res | each { |choice|
+    ln -s -r -f $"($env.FAKE_HOME)/.config/mr/available.d/($choice)" $"($env.FAKE_HOME)/.config/mr/config.d/($choice)"
   }
-  $user_choice
+  $res
 }
 
+# iterate over text fiels and replace references to FAKE_HOME with the
+# originale HOME value
 def fix_vcsh_absolute_links [] {
   assert_fake_home
   cd ".config/vcsh/repo.d/"
   let $a = $env.FAKE_HOME
   let $b = $env.OLD_HOME
   ls -a **/* | where type == file | get name | each { |file|
-    if (^file $file | str contains text) {
+    let is_text_file = ^file $file | str contains text
+    if ($is_text_file) {
       let temp = mktemp
       open -r $file | each { str replace $a $b } | save -f -r $temp
       mv -f $temp $file
@@ -147,11 +127,12 @@ def fix_vcsh_absolute_links [] {
 def clone_into_fake_home [] {
   assert_fake_home 
 
-  vcsh clone ("kevroletin/dotfiles" | gh) dotfiles
-  interactive_link_mr
+  vcsh clone ("kevroletin/dotfiles" | gh-url) dotfiles
+  if (interactive_link_mr | is-not-empty) {
+    mr update
+  }
 
   fix_vcsh_absolute_links
-  mr update
 }
 
 def to_old_path [] {
@@ -213,28 +194,6 @@ def compute_dir_conflicts [--ls-res: table, --file-conflicts: table] {
   }
 }
 
-def compute_git_repo_conflicts [--ls-res: table, --file-conflicts: table, --dir-conflicts: table] {
-    let dirs = $dir_conflicts | default (compute_dir_conflicts --ls-res=$ls_res --file-conflicts=$file_conflicts)
-
-    let repos =  $dirs
-    | where { $in.name | path basename | $in == ".git" }
-    | each { {($in.name | path dirname): true} }
-    | into record
-
-    $dirs | where { |dir| ($repos | get --optional $dir.name | default false) }
-}
-
-def compare_old_home [] {
-  assert_fake_home
-
-  let ls_res = ls -a **/* 
-  let file_conflicts = compute_file_conflicts --ls-res=$ls_res
-
-  { files: $file_conflicts
-  , dirs: (compute_dir_conflicts --ls-res=$ls_res --file-conflicts=$file_conflicts)
-  }
-}
-
 def interactiv_resolve_conflicts [] {
   assert_fake_home
 
@@ -251,6 +210,7 @@ def interactiv_resolve_conflicts [] {
     "do.nu"
     , ".viminfo"
     , ".config/kdiff3rc"
+    , "dotfiles-interactive-dialog.txt"
   ]
   let ignore_dirs = [
     , .cache
@@ -284,7 +244,6 @@ You can edit this list:
   }
 
   let files = compute_file_conflicts --ls-res=$ls_res
-  let dirs = compute_dir_conflicts --ls-res=$ls_res --file-conflicts=$files
 
   let clean_files = do {
     let clean = $files 
@@ -326,9 +285,13 @@ Edit the list below to specify which files to diff:
     $conflict_files | interactive_dialog $msg
   }
 
-  $diff_files | each { run-external $difftool ($in | to_old_path) ($in) | ignore }
+  $diff_files | each {
+    with-old-home {
+      run-external $difftool ($in | to_old_path) ($in) | ignore 
+    }
+  }
 
-  # generate script
+  # generate resulting script
   let $res_script = do {
     let $res = "do.nu"
     let header = $'#!/usr/bin/env nu
@@ -367,7 +330,7 @@ cd "($env.fAKE_HOME)"
     $res
   }
 
-  run-external $editor $res_script
+  open-in-editor $res_script
   print $"\n\nnu '($env.FAKE_HOME)/($res_script)'\n"
 
   let response = (input "Do you want to run the script? (y/n): ")
@@ -381,12 +344,14 @@ def "main continue" [] {
   with-existing-fake-home {
     interactiv_resolve_conflicts
   }
+  ignore
 }
 
 def "main clone" [] {
   with-new-fake-home {
     clone_into_fake_home
   }
+  ignore
 }
 
 def "main install" [] {
@@ -394,10 +359,9 @@ def "main install" [] {
     clone_into_fake_home
     interactiv_resolve_conflicts
   }
+  ignore
 }
 
 def main [] {
+  "Execute one of the subcommands"
 }
-
-#copy_files_to_home
-#run_post_install_scripts
