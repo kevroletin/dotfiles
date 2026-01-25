@@ -3,6 +3,7 @@
 import           Control.Monad
 import qualified Data.Map                     as M
 import           Data.Monoid                  ()
+import           Data.List                    (isPrefixOf)
 import           System.IO
 import           XMonad
 import           XMonad.Actions.CycleRecentWS
@@ -27,21 +28,28 @@ import           XMonad.Hooks.EwmhDesktops
 import           Graphics.X11.ExtraTypes.XF86
 import           XMonad.Actions.UpKeys
 import           System.Clipboard (getClipboardString)
-import           System.Directory (doesFileExist, doesDirectoryExist, canonicalizePath)
-import           System.FilePath (addTrailingPathSeparator)
+import           System.Directory (getHomeDirectory, doesFileExist, doesDirectoryExist, canonicalizePath)
+import           System.FilePath ((</>), addTrailingPathSeparator)
 import qualified Data.Text as T
 
 stripText :: String -> String
 stripText = T.unpack . T.strip . T.pack
 
-dirFromClipboard :: String -> IO String
-dirFromClipboard fallback =
+dirFromClipboard :: IO String
+dirFromClipboard =
   getClipboardString >>= \case
-      Nothing -> pure fallback
-      Just x' -> do let x = stripText x'
+      Nothing -> getHomeDirectory
+      Just x' -> do x <- expandTilda (stripText x')
                     doesDirectoryExist x >>= \case
                       True -> pure x
-                      False -> pure fallback
+                      False -> getHomeDirectory
+  where
+    expandTilda path =
+      if "~/" `isPrefixOf` path then do
+        home <- getHomeDirectory
+        pure (home </> drop 2 path)
+      else if "~" == path then getHomeDirectory
+      else pure path
 
 scratchpads = [
       NS "quake" "alacritty --class scratchpad-quake"
@@ -56,7 +64,7 @@ scratchpads = [
 
 quakeAct =
   customRunNamedScratchpadAction
-    (\_ -> do x <- liftIO (getHomeDirectory >>= dirFromClipboard)
+    (\_ -> do x <- liftIO dirFromClipboard
               safeSpawn "alacritty" ["--working-directory", x, "--class", "scratchpad-quake"])
     scratchpads
     "quake"
@@ -188,7 +196,7 @@ keysToAdd x = [
   , ((modm, xK_a), killAllOtherCopies)
 
 
-  , ((modm .|. shiftMask, xK_Return), do x <- liftIO (dirFromClipboard "~")
+  , ((modm .|. shiftMask, xK_Return), do x <- liftIO dirFromClipboard
                                          safeSpawn "alacritty" ["--working-directory", x])
   ] ++
   [((m .|. modm, k), windows $ f i)
