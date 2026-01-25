@@ -4,6 +4,3 @@
 
 vim.opt.cursorline = false
 vim.opt.wrap = false
-
--- Disable inlay hints
-vim.lsp.inlay_hint.enable(false)
