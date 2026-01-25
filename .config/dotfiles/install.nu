@@ -244,18 +244,18 @@ def interactiv_resolve_conflicts [] {
   | where type == dir
   | where { $in.name | path basename | $in == ".git" }
   | each { $in.name | path dirname }
+  | append ".config/vcsh/repo.d/dotfiles.git"
   | sort | uniq
 
   let ignore_files = [
     "do.nu"
     , ".viminfo"
-    , "config/kdiff3rc"
+    , ".config/kdiff3rc"
   ]
   let ignore_dirs = [
-    ".config/vcsh/repo.d/dotfiles.git"
     , .cache
   ]
-  let ignore_dirs = do {
+  let repos = do {
     let conflict_num = $repos | where { to_old_path | path exists } | length
     let num = $repos | length
     let msg = $"
@@ -264,19 +264,17 @@ There are ($num) git repos. ($conflict_num) of which already exist in the system
 We would ignore their content in dialogs and then just replace the whole
 directory with new content.
 
-Below is the list of such directories. It consists of normal git repos,
-.config/vcsh/repo.d/dotfiles.git and some other annoying dirs:
-
 You can edit this list:
 "
-    $repos | append $ignore_dirs | interactive_dialog $msg
+    $repos | interactive_dialog $msg
   }
 
   # filter out ignored files
   let ls_res = do {
+    let all_ignored_dirs = $ignore_dirs | append $repos
     def is_ok [] {
       let filename = $in
-      let by_dir = $ignore_dirs | any { |ignored| 
+      let by_dir = $all_ignored_dirs | any { |ignored| 
         $filename | str starts-with $ignored
       }
       let by_file = $filename in $ignore_files
@@ -339,7 +337,7 @@ cd "($env.fAKE_HOME)"
 
 ' | save -f $res
 
-    $ignore_dirs | each {
+    $repos | each {
       let from = $in
       let to = ($in | to_old_path)
 
