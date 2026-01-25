@@ -24,10 +24,10 @@
 !/.config/gdb/python/libstdcxx/v6/xmethods.py
 !/.config/gdb/python/Makefile.am
 !/.config/gdb/python/Makefile.in
-!/.config/mr/available.d/console
-!/.config/mr/available.d/desktop
 !/.config/mr/available.d/emacs
 !/.config/mr/available.d/.gitkeep
+!/.config/mr/available.d/urxvt
+!/.config/mr/available.d/zsh
 !/.config/mr/config.d/.gitkeep
 !/.config/nvim/.gitignore
 !/.config/nvim/init.lua
