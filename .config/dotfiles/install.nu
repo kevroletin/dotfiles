@@ -97,8 +97,8 @@ def interactive_link_mr [] {
   assert_fake_home
 
   let options = do { cd .config/mr/available.d; ls } | get name
-  let msg = $'mr tool manages groups of repositiries
-this confis has several groups defined, choose which ones to use:
+  let msg = $'mr tool manages groups of repositories
+this configs has several groups defined, choose which ones to use:
 '
   let res = $options | interactive_dialog $msg
   $res | each { |choice|
@@ -107,8 +107,8 @@ this confis has several groups defined, choose which ones to use:
   $res
 }
 
-# iterate over text fiels and replace references to FAKE_HOME with the
-# originale HOME value
+# iterate over text files and replace references to FAKE_HOME with the
+# original HOME value
 def fix_vcsh_absolute_links [] {
   assert_fake_home
   cd ".config/vcsh/repo.d/"
@@ -278,7 +278,7 @@ Difftool: ($difftool)
 ($layout | to md --pretty | into string)
 
 Note: if you copy changes into a file on the right, these changes will be
-copyied into the system in the next steps.
+copied into the system in the next steps.
 
 Edit the list below to specify which files to diff:
 "
@@ -296,7 +296,7 @@ Edit the list below to specify which files to diff:
     let $res = "do.nu"
     let header = $'#!/usr/bin/env nu
 
-cd "($env.fAKE_HOME)"
+cd "($env.FAKE_HOME)"
 
 ' | save -f $res
 
