@@ -1,53 +1,36 @@
-#!/bin/bash
+#!/usr/bin/env nu
 
-set -x
+let backlight_path = "/sys/class/backlight/intel_backlight/brightness"
+let max_val = 120000
+let min_val = 1000
+let change_step = 10000
+let large_step = 10000
+let small_step = 1000
 
-# Configuration
-BACKLIGHT_PATH="/sys/class/backlight/intel_backlight/brightness"
-MAX_VAL=120000
-MIN_VAL=1000
-CHANGE_STEP=10000
-LARGE_STEP=10000
-SMALL_STEP=1000
+let current_val = $backlight_path | open | into int
 
-# Read current brightness
-CURRENT_VAL=$(cat "$BACKLIGHT_PATH")
+def set_value [new_value] {
+  if ($new_value <= $max_val and $new_value >= $min_val) {
+    $new_value | save -f $backlight_path
+  }
+}
 
-# Process argument
-case $1 in
-    +)
-        if [ "$CURRENT_VAL" -ge "$MAX_VAL" ]; then
-            exit 0
-        else
-            if [ "$CURRENT_VAL" -ge "$CHANGE_STEP" ]; then
-                NEW_VAL=$((CURRENT_VAL + LARGE_STEP))
-            else
-                NEW_VAL=$((CURRENT_VAL + SMALL_STEP))
-            fi
-        fi
-        ;;
-    -)
-        if [ "$CURRENT_VAL" -le "$MIN_VAL" ]; then
-            exit 0
-        else
-            if [ "$CURRENT_VAL" -le "$CHANGE_STEP" ]; then
-                NEW_VAL=$((CURRENT_VAL - SMALL_STEP))
-            else
-                NEW_VAL=$((CURRENT_VAL - LARGE_STEP))
-            fi
-        fi
-        ;;
-    *)
-        echo "Usage: $0 {+|-}"
-        exit 1
-        ;;
-esac
+def "main +" [] {
+  if ($current_val >= $max_val) {
+    return 0
+  }
+  let step = if ($current_val >= $change_step) { $large_step } else { $small_step }
+  set_value ($current_val + $step)
+}
 
-# Bound the results to Min/Max
-if [ "$NEW_VAL" -gt "$MAX_VAL" ]; then
-    NEW_VAL=$MAX_VAL
-elif [ "$NEW_VAL" -lt "$MIN_VAL" ]; then
-    NEW_VAL=$MIN_VAL
-fi
+def "main -" [] {
+  if ($current_val <= $min_val) {
+    return 0
+  }
+  let step = if ($current_val <= $change_step) { $small_step } else { $large_step }
+  set_value ($current_val - $step)
+}
 
-echo "$NEW_VAL" > "$BACKLIGHT_PATH"
+def main [value] {
+  set_value value
+}
