@@ -24,4 +24,6 @@
 [diff]
   colorMoved = default
 [pull]
-  rebase = false
+  rebase = true
+[alias]
+  done = "!git rebase master && git checkout master && git merge @{-1} --ff-only && git branch -d @{-1}"
