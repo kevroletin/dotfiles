@@ -1,7 +1,6 @@
 *
 !/.arbtt/categorize.cfg
 !/bin/adjust-brightness
-!/bin/battery_bar.sh
 !/bin/configure-xset
 !/bin/generate-agenda.el
 !/bin/htmlize.el
@@ -30,6 +29,8 @@
 !/.config/mr/available.d/xmonad
 !/.config/mr/available.d/zsh
 !/.config/mr/config.d/.gitkeep
+!/.config/nushell/config.nu
+!/.config/nushell/env.nu
 !/.config/nvim/.gitignore
 !/.config/nvim/init.lua
 !/.config/nvim/lazyvim.json
@@ -87,9 +88,8 @@
 !/.tmux.conf
 !/.vimrc
 !/.xmobarrc
-!/.xmonad/dependencies.txt
 !/.xmonad/hints.org
-!/.xmonad/recompile.nu
+!/.xmonad/package.yaml
 !/.xmonad/setup-proxy
 !/.xmonad/stack.yaml
 !/.xmonad/start-xmonad
