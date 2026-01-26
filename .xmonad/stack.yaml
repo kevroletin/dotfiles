@@ -1,7 +1,5 @@
-
 snapshot: lts-24.28
-
 packages:
 - xmonad
 - xmonad-contrib
-
+- .
