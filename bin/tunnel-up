@@ -1,31 +1,41 @@
-#!/bin/bash
+#!/usr/bin/env nu
 
 # from https://github.com/xjasonlyu/tun2socks/wiki/Examples
 
-set -xe
+let gateway = nmcli device show | parse "IP4.GATEWAY:{ip}"
+  | each { get ip | str trim }
+  | where { is-not-empty }
+  | where { not ($in =~ '[^\d.]') }
+  | first
 
-export GATEWAY=$(nmcli device show | grep IP4.GATEWAY | head -n1 | awk '{print $2}')
-
-if [ -z "$GATEWAY" || "$GATEWAY" = "--" ]; then
+if ($gateway | is-empty) {
   echo "gateway is empty"
-else
-  echo "gateway $GATEWAY"
-fi
+  exit 1
+}
 
-if ( ip link show | grep tun0 ); then
-    echo "ton0 already configured"
-else
+print $"gateway ($gateway)"
+
+if ( ip link show | str contains tun0 ) {
+    print "ton0 already configured"
+} else {
+    print "ip tuntap add mode tun dev tun0"
+    print "ip addr add 198.18.0.1/15 dev tun0"
+    print "ip link set dev tun0 up"
     sudo ip tuntap add mode tun dev tun0
     sudo ip addr add 198.18.0.1/15 dev tun0
     sudo ip link set dev tun0 up
-fi
+}
 
-if ( ip link show | grep "tun0 metric 1" ); then
-  echo "routes already configured"
-else
+if ( ip route show | str contains "tun0 metric 1" ) {
+  print "routes already configured"
+} else {
+  print "sudo ip route del default"
+  print "sudo ip route add default via 198.18.0.1 dev tun0 metric 1"
+  print "sudo ip route add default via $gateway dev wlp59s0 metric 10"
   sudo ip route del default
   sudo ip route add default via 198.18.0.1 dev tun0 metric 1
-  sudo ip route add default via $GATEWAY dev wlp59s0 metric 10
-fi
+  sudo ip route add default via $gateway dev wlp59s0 metric 10
+}
 
-tun2socks -device tun0 -proxy socks5://${GATEWAY}:10808 -interface wlp59s0
+print "tun2socks -device tun0 -proxy $"socks5://($gateway):10808" -interface wlp59s0"
+tun2socks -device tun0 -proxy $"socks5://($gateway):10808" -interface wlp59s0

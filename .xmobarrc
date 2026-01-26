@@ -23,7 +23,7 @@ Config { font = "-*-Fixed-Bold-R-Normal-*-13-*-*-*-*-*-*-*"
                     --k , Run Date "%a %b %_d %l:%M" "date" 10
                     , Run Date "%a %b %_d no-time no-self" "date" 10
                     , Run StdinReader
-                    , Run Com "$HOME/bin/battery_bar.sh" [] "bat_bar" 30
+                    , Run Com "$HOME/bin/battery_bar" [] "bat_bar" 30
                     ]
        , sepChar = "%"
        , alignSep = "}{"
