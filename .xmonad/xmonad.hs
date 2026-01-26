@@ -257,37 +257,40 @@ myKeys x = M.union (strippedKeys x) (M.fromList (keysToAdd x))
 mySB :: StatusBarConfig
 mySB = statusBarProp "xmobar ~/.xmobarrc" (copiesPP (pad . xmobarColor "orange" "black") myPP)
   where
-    myPP = xmobarPP
-      { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]",
-        ppTitle = xmobarColor greenColor "" . shorten 50,
-        ppHidden = noScratchPad
-      }
+    myPP =
+      xmobarPP
+        { ppCurrent = xmobarColor "#e0dc19" "" . wrap "[" "]",
+          ppTitle = xmobarColor "#30d524" "" . shorten 150,
+          ppHidden = noScratchPad,
+          ppSep = "",
+          ppLayout = const " ➤ "
+        }
     noScratchPad ws = if ws == "NSP" then "" else ws
-    greenColor = "#8AE234"
 
 main :: IO ()
-main = xmonad
-  . withEasySB mySB defToggleStrutsKey
-  . (\c -> useUpKeys (def {grabKeys = True, upKeys = myUpKeys c}) c)
-  . ewmhFullscreen
-  . ewmh
-  $ desktopConfig
-    { manageHook = manageHook desktopConfig <+> namedScratchpadManageHook scratchpads <+> myManageHook,
-      layoutHook = myLayoutHook,
-      logHook =
-        -- mouse pointer follows focus
-        -- https://hackage.haskell.org/package/xmonad-contrib-0.18.1/docs/XMonad-Actions-UpdatePointer.html
-        updatePointer (0.5, 0.5) (0, 0),
-      modMask = mod4Mask,
-      focusedBorderColor = redColor,
-      focusFollowsMouse = False,
-      keys = myKeys,
-      terminal = "alacritty",
-      startupHook = do
-        windows $ W.greedyView "work"
-        configureXset,
-      workspaces = myWorkspaces
-    }
+main =
+  xmonad
+    . withEasySB mySB defToggleStrutsKey
+    . (\c -> useUpKeys (def {grabKeys = True, upKeys = myUpKeys c}) c)
+    . ewmhFullscreen
+    . ewmh
+    $ desktopConfig
+      { manageHook = manageHook desktopConfig <+> namedScratchpadManageHook scratchpads <+> myManageHook,
+        layoutHook = myLayoutHook,
+        logHook =
+          -- mouse pointer follows focus
+          -- https://hackage.haskell.org/package/xmonad-contrib-0.18.1/docs/XMonad-Actions-UpdatePointer.html
+          updatePointer (0.5, 0.5) (0, 0),
+        modMask = mod4Mask,
+        focusedBorderColor = redColor,
+        focusFollowsMouse = False,
+        keys = myKeys,
+        terminal = "alacritty",
+        startupHook = do
+          windows $ W.greedyView "work"
+          configureXset,
+        workspaces = myWorkspaces
+      }
   where
     myLayoutHook =
       maximize $ -- M-f to temporary maximize windows
