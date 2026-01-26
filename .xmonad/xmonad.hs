@@ -2,33 +2,30 @@
 
 import Data.List (isPrefixOf)
 import qualified Data.Map as M
-import Data.Monoid ()
 import qualified Data.Text as T
 import Graphics.X11.ExtraTypes.XF86
 import System.Clipboard (getClipboardString)
 import System.Directory (doesDirectoryExist, getHomeDirectory)
 import System.FilePath ((</>))
-import System.IO
 import XMonad
 import XMonad.Actions.CopyWindow
 import XMonad.Actions.CycleRecentWS
 import XMonad.Actions.CycleWS
 import XMonad.Actions.UpKeys
 import XMonad.Actions.UpdatePointer
-import XMonad.Config.Gnome
-import XMonad.Hooks.DynamicLog
+import XMonad.Config.Desktop (desktopConfig)
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
+import XMonad.Hooks.StatusBar
+import XMonad.Hooks.StatusBar.PP
 import XMonad.Layout.Maximize
 import XMonad.Layout.NoBorders
 import qualified XMonad.StackSet as W
-import XMonad.Util.EZConfig ()
 import XMonad.Util.NamedScratchpad
 import XMonad.Util.Run
   ( runProcessWithInput,
     safeSpawn,
-    spawnPipe,
   )
 import XMonad.Util.SpawnOnce
 
@@ -257,50 +254,46 @@ myKeys x = M.union (strippedKeys x) (M.fromList (keysToAdd x))
   where
     strippedKeys t = foldr M.delete (keys def t) (keysToRemove t)
 
-main :: IO ()
-main = do
-  xmproc <- spawnPipe "/usr/bin/xmobar ~/.xmobarrc"
-  xmonad
-    . (\c -> useUpKeys (def {grabKeys = True, upKeys = myUpKeys c}) c)
-    . docks
-    . ewmhFullscreen
-    . ewmh
-    $ gnomeConfig
-      { manageHook = manageHook gnomeConfig <+> namedScratchpadManageHook scratchpads <+> myManageHook,
-        layoutHook = myLayoutHook,
-        logHook = do
-          x <-
-            copiesPP (pad . xmobarColor "orange" "black") $
-              xmobarPP
-                { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]",
-                  ppOutput = hPutStrLn xmproc,
-                  ppTitle = xmobarColor greenColor "" . shorten 50,
-                  ppHidden = noScratchPad
-                }
-          dynamicLogWithPP x
-          -- mouse pointer follows focus
-          -- https://hackage.haskell.org/package/xmonad-contrib-0.18.1/docs/XMonad-Actions-UpdatePointer.html
-          updatePointer (0.5, 0.5) (0, 0),
-        modMask = mod4Mask,
-        focusedBorderColor = redColor,
-        focusFollowsMouse = False,
-        keys = myKeys,
-        -- , terminal = "wezterm -name Wezterm -e ~/bin/tshsh zsh shh"
-        terminal = "alacritty",
-        startupHook = do
-          windows $ W.greedyView "work"
-          configureXset,
-        workspaces = myWorkspaces
-        -- , handleEventHook = handleEventHook def <+> fullscreenEventHook
+mySB :: StatusBarConfig
+mySB = statusBarProp "xmobar ~/.xmobarrc" (copiesPP (pad . xmobarColor "orange" "black") myPP)
+  where
+    myPP = xmobarPP
+      { ppCurrent = xmobarColor "yellow" "" . wrap "[" "]",
+        ppTitle = xmobarColor greenColor "" . shorten 50,
+        ppHidden = noScratchPad
       }
+    noScratchPad ws = if ws == "NSP" then "" else ws
+    greenColor = "#8AE234"
+
+main :: IO ()
+main = xmonad
+  . withEasySB mySB defToggleStrutsKey
+  . (\c -> useUpKeys (def {grabKeys = True, upKeys = myUpKeys c}) c)
+  . ewmhFullscreen
+  . ewmh
+  $ desktopConfig
+    { manageHook = manageHook desktopConfig <+> namedScratchpadManageHook scratchpads <+> myManageHook,
+      layoutHook = myLayoutHook,
+      logHook =
+        -- mouse pointer follows focus
+        -- https://hackage.haskell.org/package/xmonad-contrib-0.18.1/docs/XMonad-Actions-UpdatePointer.html
+        updatePointer (0.5, 0.5) (0, 0),
+      modMask = mod4Mask,
+      focusedBorderColor = redColor,
+      focusFollowsMouse = False,
+      keys = myKeys,
+      terminal = "alacritty",
+      startupHook = do
+        windows $ W.greedyView "work"
+        configureXset,
+      workspaces = myWorkspaces
+    }
   where
     myLayoutHook =
       maximize $ -- M-f to temporary maximize windows
         smartBorders $ -- Don't put borders on fullFloatWindows
-          layoutHook gnomeConfig
-    noScratchPad ws = if ws == "NSP" then "" else ws
+          layoutHook desktopConfig
     redColor = "#Cd2626"
-    greenColor = "#8AE234"
 
 myWorkspaces :: [String]
 myWorkspaces = ["web", "work", "3", "4", "5", "6", "7", "mail", "chat", "temp"]
