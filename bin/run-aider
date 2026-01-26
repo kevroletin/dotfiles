@@ -5,7 +5,7 @@ $env.AIDER_DARK_MODE = $is_dark_mode
 $env.AIDER_LIGHT_MODE = (not $is_dark_mode)
 $env.AIDER_CODE_THEME = if ($is_dark_mode) { "solarized-dark" } else { "solarized-light" }
 
-def --wrapped "main qewn flash" [...rest] {
+def --wrapped "main qwenn flash" [...rest] {
   (^aider
     --model openai/qwen3-coder-flash
     --no-show-model-warnings
