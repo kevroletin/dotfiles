@@ -38,5 +38,14 @@ def --wrapped "main gemini flash" [...rest] {
 }
 
 def main [] {
-  r#'run with "plus", "flash" or "max" argument'#
+  r#'Usage: run-aider <model>
+
+Available models:
+  qwen flash    - Fast Qwen model
+  qwen plus     - Balanced Qwen model
+  qwen max      - Powerful Qwen model
+  gemini flash  - Google's fast model
+
+Example: run-aider qwen flash src/main.py
+'#
 }
