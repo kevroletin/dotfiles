@@ -45,15 +45,12 @@ dirFromClipboard =
         True -> pure x
         False -> getHomeDirectory
   where
-    expandTilda path =
-      if "~/" `isPrefixOf` path
-        then do
+    expandTilda path
+      | "~/" `isPrefixOf` path = do
           home <- getHomeDirectory
           pure (home </> drop 2 path)
-        else
-          if "~" == path
-            then getHomeDirectory
-            else pure path
+      | "~" == path = getHomeDirectory
+      | otherwise = pure path
 
 scratchpads :: [NamedScratchpad]
 scratchpads =
@@ -61,7 +58,7 @@ scratchpads =
       "quake"
       "alacritty --class scratchpad-quake"
       (appName =? "scratchpad-quake")
-      (customFloating $ W.RationalRect (0) (6 / 10) (1) (4 / 10)),
+      (customFloating $ W.RationalRect 0 (6 / 10) 1 (4 / 10)),
     NS
       "numen"
       ("alacritty --class scratchpad-numen --working-directory $HOME -e " ++ numenTailCmd)
@@ -86,19 +83,19 @@ type KeyCombination = (KeyMask, KeySym)
 type KeyBinding = (KeyCombination, X ())
 
 ifProcessRuns :: String -> X () -> X () -> X ()
-ifProcessRuns name a b =
+ifProcessRuns pname a b =
   do
-    out <- runProcessWithInput "pgrep" [name] ""
+    out <- runProcessWithInput "pgrep" [pname] ""
     if null out then b else a
 
 killOrSpawn :: String -> [String] -> X ()
-killOrSpawn name args =
-  ifProcessRuns name (safeSpawn "pkill" [name]) (safeSpawn name args)
+killOrSpawn pname args =
+  ifProcessRuns pname (safeSpawn "pkill" [pname]) (safeSpawn pname args)
 
 openInEmacs :: [String] -> X ()
 openInEmacs args = ifProcessRuns "emacs" viaClient viaEmacs
   where
-    viaClient = safeSpawn "emacsclient" (["--no-wait"] ++ args)
+    viaClient = safeSpawn "emacsclient" ("--no-wait" : args)
     viaEmacs = safeSpawn "emacs" args
 
 stopWhisper :: X ()
@@ -106,8 +103,10 @@ stopWhisper = do
   safeSpawn "/bin/bash" ["-c", "echo load ~/.config/numen/phrases/*.phrases| numenc"]
   safeSpawn "flatpak" ["run", "net.mkiol.SpeechNote", "--action", "stop-listening"]
 
-openEmacsAgenda = openInEmacs ["~/org/personal/gtd.org"]
+_openEmacsAgenda :: X ()
+_openEmacsAgenda = openInEmacs ["~/org/personal/gtd.org"]
 
+openObsidian :: X ()
 openObsidian =
   ifProcessRuns
     "obsidian"
@@ -116,8 +115,6 @@ openObsidian =
 
 toggleTouchpad :: X ()
 toggleTouchpad = spawn "~/bin/toggleTouchpad"
-
--- toggleCapture = spawn "~/bin/toggleCapture"
 
 toggleEarbuds :: X ()
 toggleEarbuds = spawn "~/bin/toggleEarbuds"
@@ -179,10 +176,10 @@ keysToAdd x =
     -- , (((modMask x), xK_F2), spawn "~/Downloads/NormCap-0.5.9-x86_64.AppImage -l chi --clipboard-handler xclip")
 
     -- Shortcuts to open programs
-    (((modMask x), xK_F1), spawn "xprop | grep 'WM_CLASS\\|WM_NAME' | xmessage -file -"),
+    ((modMask x, xK_F1), spawn "xprop | grep 'WM_CLASS\\|WM_NAME' | xmessage -file -"),
     -- , (((modMask x), xK_F2), safeSpawn "slack" [] >> safeSpawn "firefox" [])
-    (((modMask x), xK_F3), openObsidian),
-    (((modMask x), xK_F4), killOrSpawn "redshift" []),
+    ((modMask x, xK_F3), openObsidian),
+    ((modMask x, xK_F4), killOrSpawn "redshift" []),
     -- Toggle xmobar
     ((modMask x, xK_b), sendMessage ToggleStruts), -- Lock the screen
     ((modMask x, xK_z), do safeSpawn "xscreensaver-command" ["-lock"]),
@@ -209,26 +206,25 @@ keysToAdd x =
     ((modm, xK_a), killAllOtherCopies),
     ( (modm .|. shiftMask, xK_Return),
       do
-        x <- liftIO dirFromClipboard
-        safeSpawn "alacritty" ["--working-directory", x]
+        dir <- liftIO dirFromClipboard
+        safeSpawn "alacritty" ["--working-directory", dir]
     )
   ]
+    -- copy to workspace
     ++ [ ((m .|. modm, k), windows $ f i)
        | (i, k) <- zip (workspaces x) [xK_1 ..],
          (f, m) <- [(W.view, 0), (W.shift, shiftMask), (copy, shiftMask .|. controlMask)]
        ]
   where
-    modm = (modMask x)
+    modm = modMask x
 
 -- Run this command to disable key repeat
 -- xset -r 78
 myUpKeys :: XConfig l -> M.Map (KeyMask, KeySym) (X ())
-myUpKeys conf =
+myUpKeys _conf =
   M.fromList
     [ ((0, xK_Scroll_Lock), voxtypeStop)
     ]
-  where
-    modm = modMask conf
 
 -- Unused default key bindings
 keysToRemove :: XConfig l -> [KeyCombination]
@@ -253,10 +249,10 @@ keysToRemove x =
     (modm .|. shiftMask, xK_Return)
   ]
   where
-    modm = (modMask x)
+    modm = modMask x
 
 -- Modify default key bindings scheme
-myKeys :: XConfig Layout -> M.Map (KeyCombination) (X ())
+myKeys :: XConfig Layout -> M.Map KeyCombination (X ())
 myKeys x = M.union (strippedKeys x) (M.fromList (keysToAdd x))
   where
     strippedKeys t = foldr M.delete (keys def t) (keysToRemove t)
