@@ -8,6 +8,7 @@
 !/bin/mail-agenda.sh
 !/bin/org-pull
 !/bin/org-push
+!/bin/run-aider
 !/bin/tunnel-up
 !/.config/Code/User/keybindings.json
 !/.config/Code/User/settings.json
@@ -86,10 +87,14 @@
 !/.tmux.conf
 !/.vimrc
 !/.xmobarrc
+!/.xmonad/dependencies.txt
 !/.xmonad/hints.org
+!/.xmonad/recompile.nu
 !/.xmonad/setup-proxy
+!/.xmonad/stack.yaml
 !/.xmonad/start-xmonad
 !/.xmonad/theme-switcher
+!/.xmonad/xmonad.desktop
 !/.xmonad/xmonad.hs
 !/.xremap.yml
 !/.Xresources
