@@ -31,6 +31,12 @@ def "main -" [] {
   set_value ($current_val - $step)
 }
 
-def main [value] {
+def "main set" [value] {
   set_value value
+}
+
+def main [] {
+  let x = ($current_val * 100.0 / $max_val | into int)
+  let emoji = [🌚 🌚 🌜 ☀️ ☀️] | get ($x / 25 | into int)
+  $"($x)% ($emoji)"
 }
