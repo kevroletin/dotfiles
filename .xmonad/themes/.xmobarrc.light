@@ -1,10 +1,21 @@
 Config {
-  font = "xft:UbuntuMono Nerd Font Mono:style=Bold 14"
+  font = "xft:UbuntuMono Nerd Font Mono:style=Bold 12"
 
-  , fgColor = "#002832"
-  , bgColor = "#ccc6b7"
+  -- , bgColor = "#e3ddcc"
+  , bgColor = "#eee8d5"
+  -- , bgColor = "#fdf6e3"
 
-  , position = TopSize L 90 23
+  , fgColor = "#112c36"
+
+  -- , border = BottomB
+  -- , borderColor = "#002b36"
+
+  -- Part of ordering trayer on top of xmobar
+  -- https://xmonad.github.io/xmonad-docs/xmonad-contrib/XMonad-Util-Hacks.html#g:3
+  , lowerOnStart = True
+  , overrideRedirect = True
+
+  , position = TopSize L 100 23
   , commands = [
         Run Cpu [
             "-w", "3"
@@ -39,6 +50,6 @@ Config {
       ]
   , sepChar = "%"
   , alignSep = "}{"
-  , template = "%XMonadLog% }{ %bright% %cpu% %memory% - %swap% <fc=#1d8016>%date%</fc>"
+  , template = "%XMonadLog% }{| %bright% %battery% %cpu% %memory% - %swap% | <fc=#1d8016>%date%</fc> |                                               "
   , allDesktops = True
 }

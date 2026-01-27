@@ -38,12 +38,13 @@ def "main set" [value] {
 def main [] {
   let x = ($current_val * 100.0 / $max_val | into int)
   let bars = (
-    [ ["ꕤ ꕤ ꕤ ❊"]
-    , ["ꕤ ꕤ ❊ ❊"]
-    , ["ꕤ ❊ ❊ ❊"]
+    [ ["ꕤ ꕤ ꕤ ꕤ"]
+    , ["❊ ꕤ ꕤ ꕤ"]
+    , ["❊ ❊ ꕤ ꕤ"]
+    , ["❊ ❊ ❊ ꕤ"]
     , ["❊ ❊ ❊ ❊"]
     , ["❊-❊-❊-❊"] ]
   )
-  let res = $bars | get ($x / 25 | into int) | str join
+  let res = $bars | get ($x / 20 | into int) | str join
   $"[($res)]"
 }

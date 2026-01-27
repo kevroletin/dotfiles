@@ -8,6 +8,10 @@ def copy_config [file_path, style] {
   ln -f --symbolic --relative $"($x).($style)" $x
 }
 
+def set_rofi_theme [style] {
+  copy_config .config/rofi/config.rasi $style
+}
+
 def set_trayer_theme [style] {
   copy_config ".xmonad/themes/.trayer_color" $style
   systemctl --user restart trayer.service
@@ -42,6 +46,7 @@ def set_theme [style] {
   set_helix_theme $style
   set_xmobar_theme $style
   set_trayer_theme $style
+  set_rofi_theme $style
 
   notify-send 'Desktop theme update'
 }
