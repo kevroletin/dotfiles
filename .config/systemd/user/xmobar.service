@@ -6,7 +6,7 @@ Wants=graphical-session-pre.target
 
 [Service]
 Type=simple
-ExecStart=/home/behemoth/.local/bin/xmobar
+ExecStart=%h/.local/bin/xmobar %h/.xmonad/themes/.xmobarrc
 Restart=on-failure
 RestartSec=2
 

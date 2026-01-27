@@ -8,8 +8,13 @@ def copy_config [file_path, style] {
   cp $"($x).($style)" $x
 }
 
+def set_trayer_theme [style] {
+  copy_config ".xmonad/themes/.trayer_color" $style
+  systemctl --user restart trayer.service
+}
+
 def set_xmobar_theme [style] {
-  copy_config ".xmobarrc" $style
+  copy_config ".xmonad/themes/.xmobarrc" $style
   systemctl --user restart xmobar.service
 }
 
@@ -36,6 +41,7 @@ def set_theme [style] {
   set_alacritty_theme $style
   set_helix_theme $style
   set_xmobar_theme $style
+  set_trayer_theme $style
 
   notify-send 'Desktop theme update'
 }

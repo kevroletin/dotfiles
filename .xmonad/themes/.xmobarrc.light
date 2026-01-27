@@ -3,8 +3,8 @@ Config {
 
   -- , bgColor = "#001115"
   -- , fgColor = "#818f8e"
-  , bgColor = "white"
-  , fgColor = "#ccc6b7"
+  , fgColor = "#002832"
+  , bgColor = "#ccc6b7"
 
   , position = TopSize L 90 23
   , commands = [
