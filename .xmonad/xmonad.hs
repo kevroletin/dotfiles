@@ -262,8 +262,12 @@ myKeys x = M.union (strippedKeys x) (M.fromList (keysToAdd x))
 mySB :: StatusBarConfig
 mySB =
   res
-    { sbStartupHook = spawn "systemctl --user start xmobar.service",
-      sbCleanupHook = spawn "systemctl --user stop xmobar.service"
+    { sbStartupHook = do
+        spawn "systemctl --user start xmobar.service"
+        spawn "systemctl --user start trayer.service"
+    , sbCleanupHook = do
+        spawn "systemctl --user stop xmobar.service"
+        spawn "systemctl --user stop trayer.service"
     }
   where
     res = statusBarProp "xmobar ~/.xmobarrc" (copiesPP (wrap "✦" "") myPP)
