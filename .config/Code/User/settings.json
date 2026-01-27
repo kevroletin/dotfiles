@@ -99,9 +99,11 @@
     "editor.wordWrap": "off",
     "editor.guides.indentation": false,
     "haskell.manageHLS": "GHCup",
-    "editor.fontFamily": "'Source Code Pro', 'Ubuntu Mono', 'monospace', monospace",
-    "editor.fontSize": 15,
+    "editor.fontFamily": "UbuntuMono Nerd Font Propo",
+    "editor.fontSize": 18,
     "editor.inlayHints.enabled": "offUnlessPressed",
+    "window.autoDetectColorScheme": true,
+    "workbench.preferredLightColorTheme": "Solarized Light",
     "workbench.preferredDarkColorTheme": "Solarized Dark",
     "workbench.colorCustomizations": {
         "editor.selectionBackground": "#586e7532",
@@ -137,12 +139,16 @@
     "editor.inlineSuggest.enabled": true,
     "lldb.suppressUpdateNotifications": true,
     "editor.renderWhitespace": "none",
-    "workbench.colorTheme": "Solarized Light",
+    "workbench.colorTheme": "Solarized Dark",
     "workbench.activityBar.location": "hidden",
     "files.autoSave": "afterDelay",
     "rust-analyzer.linkedProjects": [
     ],
     "github.copilot.editor.enableAutoCompletions": true,
     "rust-analyzer.workspace.discoverConfig": null,
-    "window.commandCenter": false
+    "window.commandCenter": false,
+    "github.copilot.chat.tools.memory.enabled": true,
+    "workbench.editor.enablePreview": false,
+    "haskell.ghcupExecutablePath": "/home/behemoth/.ghcup/bin/ghcup",
+    "chat.viewSessions.orientation": "stacked"
 }

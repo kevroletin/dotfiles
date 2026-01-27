@@ -1,33 +1,47 @@
-Config { font = "xft:UbuntuMono Nerd Font Mono:style=Bold 14"
-       , bgColor = "#001115"
-       , fgColor = "#818f8e"
-       , position = TopSize L 90 23
-       , commands = [ Run Cpu ["-m", "4", "-w", "2", "-L","3","-H","50","--normal","gray","--high","red"] 10
-                    , Run Memory ["-w", "2", "-t","Mem: <usedratio>%"] 10
-                    , Run Battery [ "--template" , "Batt: <acstatus>"
-                                  , "--Low"      , "10"        -- units: %
-                                  , "--High"     , "80"        -- units: %
-                                  , "--low"      , "red"
-                                  , "--normal"   , "#a46318"
-                                  , "--high"     , "gray"
+Config {
+  font = "xft:UbuntuMono Nerd Font Mono:style=Bold 14"
 
-                                  , "--" -- battery specific options
-                                            -- discharging status
-                                            , "-o"	, "🏃‍➡️<left>% (<timeleft>)"
-                                            -- AC "on" status
-                                            , "-O"	, "➤➤ <left>%"
-                                            -- charged status
-                                            , "-i"	, "<fc=#168416>100%</fc>"
-                                  ] 50
-                    , Run Swap ["-w", "2", "-t","<usedratio>%"] 10
-                    -- , Run Date "%a %b %_d %l:%M" "date" 10
-                    , Run Date "%a %b %_d" "date" 10
-                    , Run XMonadLog
-                    , Run Com "battery_bar" [] "bat_bar" 30
-                    , Run Com "adjust-brightness" [] "bright" 10
-                    ]
-       , sepChar = "%"
-       , alignSep = "}{"
-       , template = "%XMonadLog% }{ %bright% %bat_bar% %battery% %cpu% %memory% - %swap% <fc=#1d8016>%date%</fc>"
-       , allDesktops = True
-       }
+  -- , bgColor = "#001115"
+  -- , fgColor = "#818f8e"
+  , bgColor = "#002832"
+  , fgColor = "#ccc6b7"
+
+  , position = TopSize L 90 23
+  , commands = [
+        Run Cpu [
+            "-w", "3"
+          , "-L", "3"
+          , "-H", "50"
+          , "--normal", "#ccc6b7"
+          , "--high", "#cc9290"
+          ]
+          10
+      , Run Memory ["-w", "3", "-t","Mem: <usedratio>%"] 10
+      , Run Battery [
+            "--template" , "[+/- <acstatus>]"
+          , "--Low"      , "20"               -- units: %
+          , "--High"     , "80"               -- units: %
+          , "--low"      , "#cc9290"
+          , "--normal"   , "#ccbd96"
+          , "--high"     , "#ccc6b7"
+
+          , "--" -- battery specific options
+                                              -- discharging status
+          , "-o"	, "🏃‍➡️<left>%"
+                                              -- AC "on" status
+          , "-O"	, "🗲<left>%"               -- ⌁
+                                              -- charged status
+          , "-i"	, "<fc=#168416>100%</fc>"
+          ]
+          50
+        , Run Swap ["-w", "2", "-t","<usedratio>%"] 10
+        , Run Date "%a %b %_d" "date" 10
+        , Run XMonadLog
+        , Run Com "battery_bar" [] "bat_bar" 30
+        , Run Com "adjust-brightness" [] "bright" 10
+      ]
+  , sepChar = "%"
+  , alignSep = "}{"
+  , template = "%XMonadLog% }{ %bright% %bat_bar% %battery% %cpu% %memory% - %swap% <fc=#1d8016>%date%</fc>"
+  , allDesktops = True
+}
