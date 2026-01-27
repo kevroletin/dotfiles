@@ -28,6 +28,7 @@ import XMonad.Util.Run
     safeSpawn,
   )
 import XMonad.Util.SpawnOnce
+import qualified XMonad.Util.Hacks as Hacks
 
 stripText :: String -> String
 stripText = T.unpack . T.strip . T.pack
@@ -161,6 +162,9 @@ keysToAdd x =
     ((modMask x, xK_Right), nextWS),
     ((modMask x, xK_h), prevWS),
     ((modMask x, xK_l), nextWS),
+
+    ((modMask x, xK_p), spawn "rofi -show run"),
+    ((modMask x .|. shiftMask, xK_p), spawn "rofi -show window"),
     -- Move focused program to right or left workspace
     ((modMask x .|. shiftMask, xK_Left), shiftToPrev),
     ((modMask x .|. shiftMask, xK_Right), shiftToNext),
@@ -173,7 +177,7 @@ keysToAdd x =
     -- , (((modMask x), xK_F2), spawn "~/Downloads/NormCap-0.5.9-x86_64.AppImage -l chi --clipboard-handler xclip")
 
     -- Shortcuts to open programs
-    ((modMask x, xK_F1), spawn "xprop | grep 'WM_CLASS\\|WM_NAME' | xmessage -file -"),
+    ((modMask x, xK_F1), spawn "xprop | xmessage -file -"),
     -- , (((modMask x), xK_F2), safeSpawn "slack" [] >> safeSpawn "firefox" [])
     ((modMask x, xK_F3), openObsidian),
     ((modMask x, xK_F4), killOrSpawn "redshift" []),
@@ -232,8 +236,9 @@ keysToRemove x =
     (modMask x, xK_m),
     -- scratchpad numen
     (modMask x, xK_n),
-    -- Xmobar is used as programs launcher
+    -- rofi is used as programs launcher
     (modMask x .|. shiftMask, xK_p),
+    (modMask x, xK_p),
     -- This one used for history cycle
     (modMask x, xK_Tab),
     -- These are remapped to < and >
@@ -265,22 +270,23 @@ mySB =
     myPP =
       xmobarPP
         { ppCurrent = wrap "⮞ " " ⮜",
-          ppTitle = shorten 150,
+          ppTitle = id,
           ppHidden = noScratchPad,
           ppSep = "",
-          ppLayout = const "   "
+          ppLayout = const " | "
         }
     noScratchPad ws = if ws == "NSP" then "" else ws
 
 main :: IO ()
 main =
   xmonad
+    . docks
     . withEasySB mySB defToggleStrutsKey
     . (\c -> useUpKeys (def {grabKeys = True, upKeys = myUpKeys c}) c)
     . ewmhFullscreen
     . ewmh
     $ desktopConfig
-      { manageHook = manageHook desktopConfig <+> namedScratchpadManageHook scratchpads <+> myManageHook,
+      { manageHook = manageDocks <+> manageHook desktopConfig <+> namedScratchpadManageHook scratchpads <+> myManageHook,
         layoutHook = myLayoutHook,
         logHook =
           -- mouse pointer follows focus
@@ -294,13 +300,15 @@ main =
         startupHook = do
           windows $ W.greedyView "work"
           configureXset,
-        workspaces = myWorkspaces
+        workspaces = myWorkspaces,
+        handleEventHook = (handleEventHook desktopConfig) <> Hacks.trayerAboveXmobarEventHook
       }
   where
     myLayoutHook =
-      maximize $ -- M-f to temporary maximize windows
-        smartBorders $ -- Don't put borders on fullFloatWindows
-          layoutHook desktopConfig
+      avoidStruts $
+        maximize $ -- M-f to temporary maximize windows
+          smartBorders $ -- Don't put borders on fullFloatWindows
+            layoutHook desktopConfig
     redColor = "#Cd2626"
 
 myWorkspaces :: [String]

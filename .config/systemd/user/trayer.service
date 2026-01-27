@@ -1,0 +1,14 @@
+[Unit]
+Description=Trayer
+PartOf=graphical-session.target
+After=graphical-session-pre.target
+Wants=graphical-session-pre.target
+
+[Service]
+Type=simple
+ExecStart=%h/.xmonad/start-trayer
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

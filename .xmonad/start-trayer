@@ -1,0 +1,17 @@
+#!/usr/bin/env nu
+
+let color = open $"($env.HOME)/.xmonad/themes/.trayer_color" | str replace "#" "0x" | str trim
+
+(trayer 
+  --edge top
+  --align right
+  --SetDockType true
+  --SetPartialStrut false
+  --expand true
+  --width 10
+  --height 21
+  --transparent true
+  --alpha 0
+  -l # lower on startup to hide behind other windows
+  --tint $color
+)
