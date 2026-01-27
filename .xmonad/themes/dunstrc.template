@@ -17,21 +17,21 @@
 
 [urgency_low]
     # Solarized Dark: base01 on base03
-    background = "#002b36"
-    foreground = "#586e75"
-    frame_color = "#073642"
+    background = "($dunst.low.background)"
+    foreground = "($dunst.low.foreground)"
+    frame_color = "($dunst.low.frame_color)"
     timeout = 3
 
 [urgency_normal]
     # Solarized Dark: base0 on base03
-    background = "#002b36"
-    foreground = "#839496"
-    frame_color = "#586e75"
+    background = "($dunst.normal.background)"
+    foreground = "($dunst.normal.foreground)"
+    frame_color = "($dunst.normal.frame_color)"
     timeout = 3
 
 [urgency_critical]
     # Solarized Dark: red on base03
-    background = "#002b36"
-    foreground = "#dc322f"
-    frame_color = "#dc322f"
+    background = "($dunst.critical.background)"
+    foreground = "($dunst.critical.foreground)"
+    frame_color = "($dunst.critical.frame_color)
     timeout = 0

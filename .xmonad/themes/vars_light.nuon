@@ -1,0 +1,18 @@
+{
+  xmobar.background: "#e3ddcc"
+  xmobar.foreground: "#112c36"
+  xmobar.widget-red: "#cc9290"
+  xmobar.widget-yellow: "#ccbd96"
+  xmobar.widget-white: "#ccc6b7"
+  xmobar.green: "#168416"
+
+  dunst.low.background: "#fdf6e3"
+  dunst.low.foreground: "#93a1a1"
+  dunst.low.frame_color: "#eee8d5"
+  dunst.normal.background: "#fdf6e3"
+  dunst.normal.foreground: "#657b83"
+  dunst.normal.frame_color: "#93a1a1"
+  dunst.critical.background: "#fdf6e3"
+  dunst.critical.foreground: "#dc322f"
+  dunst.critical.frame_color: "#dc322f"
+}

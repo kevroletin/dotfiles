@@ -1,14 +1,8 @@
 Config {
   font = "xft:UbuntuMono Nerd Font Mono:style=Bold 12"
 
-  -- , bgColor = "#e3ddcc"
-  , bgColor = "#eee8d5"
-  -- , bgColor = "#fdf6e3"
-
-  , fgColor = "#112c36"
-
-  -- , border = BottomB
-  -- , borderColor = "#002b36"
+  , bgColor = "($xmobar.background)"
+  , fgColor = "($xmobar.foreground)"
 
   -- Part of ordering trayer on top of xmobar
   -- https://xmonad.github.io/xmonad-docs/xmonad-contrib/XMonad-Util-Hacks.html#g:3
@@ -21,8 +15,8 @@ Config {
             "-w", "3"
           , "-L", "3"
           , "-H", "50"
-          , "--normal", "#ccc6b7"
-          , "--high", "#cc9290"
+          , "--normal", "($xmobar.widget-yellow)"
+          , "--high", "($xmobar.widget-red)"
           ]
           10
       , Run Memory ["-w", "3", "-t","Mem: <usedratio>%"] 10
@@ -30,9 +24,9 @@ Config {
             "--template" , "[+/- <acstatus>]"
           , "--Low"      , "20"               -- units: %
           , "--High"     , "80"               -- units: %
-          , "--low"      , "#cc9290"
-          , "--normal"   , "#ccbd96"
-          , "--high"     , "#ccc6b7"
+          , "--low"      , "($xmobar.widget-white)"
+          , "--normal"   , "($xmobar.widget-yellow)"
+          , "--high"     , "($xmobar.widget-red)"
 
           , "--" -- battery specific options
                                               -- discharging status
@@ -40,7 +34,7 @@ Config {
                                               -- AC "on" status
           , "-O"	, "🗲<left>%"               -- ⌁
                                               -- charged status
-          , "-i"	, "<fc=#168416>100%</fc>"
+          , "-i"	, "<fc=($xmobar.green)>100%</fc>"
           ]
           50
         , Run Swap ["-w", "2", "-t","<usedratio>%"] 10
@@ -50,6 +44,6 @@ Config {
       ]
   , sepChar = "%"
   , alignSep = "}{"
-  , template = "%XMonadLog% }{| %bright% %battery% %cpu% %memory% - %swap% | <fc=#1d8016>%date%</fc> |                                               "
+  , template = "%XMonadLog% }{| %bright% %battery% %cpu% %memory% - %swap% | <fc=#($xmobar.green)>%date%</fc> |                                               "
   , allDesktops = True
 }

@@ -1,25 +1,38 @@
 #!/usr/bin/env nu
+#
+# * rofi - application launcher menu
+# * xmobar - status bar
+# * trayer - system tray
+# * dunst - notifications
+# * alacritty - terminal
 
 let HOME = $env.HOME
 
-def copy_config [file_path, style] {
+def link_config [file_path, style] {
   let x = $"($HOME)/($file_path)"
   print $"($x).($style)" $x
   ln -f --symbolic --relative $"($x).($style)" $x
 }
 
 def set_rofi_theme [style] {
-  copy_config .config/rofi/config.rasi $style
+  link_config .config/rofi/config.rasi $style
 }
 
-def set_trayer_theme [style] {
-  copy_config ".xmonad/themes/.trayer_color" $style
+# trayer, xmobar, dunst
+def expand_templates [style] {
+  let themes_dir = $"($env.HOME)/.xmonad/themes/"
+  let script = $"($themes_dir)/expand.nu"
+  let vars = $"($themes_dir)/vars_($style).nuon"
+
+  nu $script --dir $themes_dir  --vars $vars
+}
+
+def set_bunch_of_themes [style] {
+  expand_templates $style
+
   systemctl --user restart trayer.service
-}
-
-def set_xmobar_theme [style] {
-  copy_config ".xmonad/themes/.xmobarrc" $style
   systemctl --user restart xmobar.service
+  systemctl --user restart dunst.service
 }
 
 def set_alacritty_theme [style] {
@@ -28,24 +41,11 @@ def set_alacritty_theme [style] {
   $template | save --force $"($x)/theme.toml"
 }
 
-def set_dunst_theme [style] {
-  copy_config ".config/dunst/dunstrc" $style
-  systemctl --user restart dunst.service
-}
-
-def set_helix_theme [style] {
-  let x = $"($HOME)/.config/helix/themes/adaptive.toml"
-  $'inherits = "solarized_($style)"' | save --force $x
-}
-
 def set_theme [style] {
   let current = system_theme
 
-  set_dunst_theme $style
+  set_bunch_of_themes $style
   set_alacritty_theme $style
-  set_helix_theme $style
-  set_xmobar_theme $style
-  set_trayer_theme $style
   set_rofi_theme $style
 
   notify-send 'Desktop theme update'

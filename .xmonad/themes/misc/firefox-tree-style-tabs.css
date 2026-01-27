@@ -1,0 +1,87 @@
+/* Mostly AI-generated */
+
+:root {
+  --base3: #fdf6e3;    /* Light bg */
+  --base2: #eee8d5;    /* Light highlight */
+  --base1: #93a1a1;    /* Light comments */
+  --base0: #839496;    /* Light content (unused in light) */
+  --base00: #657b83;   /* Light content */
+  --base01: #586e75;   /* Light emphasized (unused in light) */
+  --base02: #073642;   /* Dark highlight (unused in light) */
+  --base03: #002b36;   /* Dark bg (unused in light) */
+  --green: #859900;    /* Accent for highlights */
+
+  --toolbar-bg: #fdf6e3;
+  --toolbar-text: #002b36;
+  --toolbar-border: #93a1a1;
+  --tab-surface: transparent;
+  --tab-surface-hover: #eee8d5;
+  --tab-surface-active: #eee8d5;
+  --tab-surface-active-hover: #eee8d5;
+  --toolbar-text-active: #586e75;
+  --throbber-color: #93a1a1;
+  --tab-height: 1.7em; /* Adjust this for tab height; smaller = more compact */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --toolbar-bg: #002b36;
+    --toolbar-text: #839496;
+    --toolbar-border: #586e75;
+    --tab-surface-hover: #073642;
+    --tab-surface-active: #073642;
+    --tab-surface-active-hover: #073642;
+    --toolbar-text: var(--toolbar-text);
+    --toolbar-text-active: #93a1a1;
+    --throbber-color: #586e75;
+  }
+}
+
+#tabbar {
+  background-color: var(--toolbar-bg);
+  color: var(--toolbar-text);
+  scrollbar-color: var(--toolbar-border) var(--toolbar-bg);
+}
+
+tab-item, .after-tabs button {
+  background: var(--tab-surface);
+  color: var(--toolbar-text);
+  padding: 0.2em 0.25em; /* Reduced vertical padding for smaller height */
+  min-height: var(--tab-height);
+}
+
+tab-item:not(.active):not(.bundled-active):not(.highlighted) {
+  --throbber-color: var(--throbber-color);
+  opacity: 0.85; /* Slight dim for inactive */
+}
+
+tab-item:not(.active):not(.bundled-active):hover,
+.after-tabs button:hover {
+  background: var(--tab-surface-hover);
+}
+
+tab-item.active, tab-item.bundled-active {
+  --toolbar-text: var(--tab-text-active);
+  background: var(--tab-surface-active);
+}
+
+tab-item.active:hover, tab-item.bundled-active:hover {
+  background: var(--tab-surface-active-hover);
+}
+
+tab-item * {
+  color: var(--toolbar-text);
+}
+
+tab-item tab-label {
+  margin-left: 0.2em; /* Slightly reduced for compact fit */
+  padding: 0;
+  line-height: var(--tab-height);
+}
+
+tab-item tab-closebox {
+  margin: calc((var(--tab-height) - 0.8em) / 2) 0.2em; /* Scaled for new height */
+  padding: 0.15em;
+  height: calc(var(--tab-height) * 0.7);
+  width: calc(var(--tab-height) * 0.7);
+}

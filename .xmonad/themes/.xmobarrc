@@ -1,10 +1,6 @@
 Config {
   font = "xft:UbuntuMono Nerd Font Mono:style=Bold 12"
 
-  -- , border = BottomB
-  -- , borderColor = "#ccc6b7"
-
-  -- , bgColor = "#002832"
   , bgColor = "#000f13"
   , fgColor = "#ccc6b7"
 
@@ -19,7 +15,7 @@ Config {
             "-w", "3"
           , "-L", "3"
           , "-H", "50"
-          , "--normal", "#ccc6b7"
+          , "--normal", "#ccbd96"
           , "--high", "#cc9290"
           ]
           10
@@ -28,9 +24,9 @@ Config {
             "--template" , "[+/- <acstatus>]"
           , "--Low"      , "20"               -- units: %
           , "--High"     , "80"               -- units: %
-          , "--low"      , "#cc9290"
+          , "--low"      , "#ccc6b7"
           , "--normal"   , "#ccbd96"
-          , "--high"     , "#ccc6b7"
+          , "--high"     , "#cc9290"
 
           , "--" -- battery specific options
                                               -- discharging status
@@ -48,6 +44,6 @@ Config {
       ]
   , sepChar = "%"
   , alignSep = "}{"
-  , template = "%XMonadLog% }{| %bright% %battery% %cpu% %memory% - %swap% | <fc=#1d8016>%date%</fc> |                                               "
+  , template = "%XMonadLog% }{| %bright% %battery% %cpu% %memory% - %swap% | <fc=##168416>%date%</fc> |                                               "
   , allDesktops = True
 }
