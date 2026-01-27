@@ -44,6 +44,6 @@ Config {
       ]
   , sepChar = "%"
   , alignSep = "}{"
-  , template = "%XMonadLog% }{| %bright% %battery% %cpu% %memory% - %swap% | <fc=##168416>%date%</fc> |                                               "
+  , template = "%XMonadLog% }{| %bright% %battery% %cpu% %memory% - %swap% | <fc=#168416>%date%</fc> |                                               "
   , allDesktops = True
 }

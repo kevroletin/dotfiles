@@ -1,3 +1,7 @@
+### TODO
+
+symlinks
+
 ### How it works
 
 The main problem of installing/updating dotfiles is that some files might

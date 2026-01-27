@@ -22,13 +22,13 @@ import XMonad.Hooks.StatusBar.PP
 import XMonad.Layout.Maximize
 import XMonad.Layout.NoBorders
 import qualified XMonad.StackSet as W
+import qualified XMonad.Util.Hacks as Hacks
 import XMonad.Util.NamedScratchpad
 import XMonad.Util.Run
   ( runProcessWithInput,
     safeSpawn,
   )
 import XMonad.Util.SpawnOnce
-import qualified XMonad.Util.Hacks as Hacks
 
 stripText :: String -> String
 stripText = T.unpack . T.strip . T.pack
@@ -71,7 +71,15 @@ quakeAct =
   customRunNamedScratchpadAction
     ( \_ -> do
         x <- liftIO dirFromClipboard
-        safeSpawn "alacritty" ["--working-directory", x, "--class", "scratchpad-quake"]
+        safeSpawn
+          "alacritty"
+          [ "--working-directory",
+            x,
+            "--class",
+            "scratchpad-quake",
+            "-o",
+            "window.opacity=1"
+          ]
     )
     scratchpads
     "quake"
@@ -162,7 +170,6 @@ keysToAdd x =
     ((modMask x, xK_Right), nextWS),
     ((modMask x, xK_h), prevWS),
     ((modMask x, xK_l), nextWS),
-
     ((modMask x, xK_p), spawn "rofi -show run"),
     ((modMask x .|. shiftMask, xK_p), spawn "rofi -show window"),
     -- Move focused program to right or left workspace
@@ -182,7 +189,8 @@ keysToAdd x =
     ((modMask x, xK_F3), openObsidian),
     ((modMask x, xK_F4), killOrSpawn "redshift" []),
     -- Toggle xmobar
-    ((modMask x, xK_b), sendMessage ToggleStruts), -- Lock the screen
+    ((modMask x, xK_b), sendMessage ToggleStruts), -- adjuct layout
+    ((modMask x .|. shiftMask, xK_b), do spawn "~/.xmonad/toggle-xmobar"), -- kill xmobar
     ((modMask x, xK_z), do safeSpawn "xscreensaver-command" ["-lock"]),
     ((modMask x .|. shiftMask, xK_z), do spawn "sleep 1s; xset dpms force off"),
     -- Float and enlarge selected window
@@ -263,11 +271,9 @@ mySB :: StatusBarConfig
 mySB =
   res
     { sbStartupHook = do
-        spawn "systemctl --user start xmobar.service"
-        spawn "systemctl --user start trayer.service"
-    , sbCleanupHook = do
+        spawn "systemctl --user start xmobar.service",
+      sbCleanupHook = do
         spawn "systemctl --user stop xmobar.service"
-        spawn "systemctl --user stop trayer.service"
     }
   where
     res = statusBarProp "xmobar ~/.xmobarrc" (copiesPP (wrap "✦" "") myPP)
@@ -305,7 +311,7 @@ main =
           windows $ W.greedyView "work"
           configureXset,
         workspaces = myWorkspaces,
-        handleEventHook = (handleEventHook desktopConfig) <> Hacks.trayerAboveXmobarEventHook
+        handleEventHook = handleEventHook desktopConfig <> Hacks.trayerAboveXmobarEventHook
       }
   where
     myLayoutHook =

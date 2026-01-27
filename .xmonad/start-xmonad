@@ -1,21 +1,10 @@
 #!/bin/bash
 
-~/bin/switch-dark-theme &
-
-systemctl --user start voxtype
-
-# xue-hanzi anki cards backend
-cd ~/Scratch/js/hanzi-writer/character-server && cargo run &
-
-# proxy autoconfig
-busybox httpd -v -f -p 8910 -c ~/Scratch/desktop/proxy_config/.httpd.conf -h ~/Scratch/desktop/proxy_config &
+#rm -f ~/.xmonad/xmonad.state
 
 # at-spi consumes cpu https://bbs.archlinux.org/viewtopic.php?id=237697
 export NO_AT_BRIDGE=1
-
-#rm -f ~/.xmonad/xmonad.state
 export GTK2_RC_FILES="$HOME/.gtkrc-2.0"
-
 # work around problem with java applications
 export _JAVA_AWT_WM_NONREPARENTING=1
 
@@ -23,8 +12,6 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 
 # separate layout for each window
 kbdd
-
-~/bin/xremap --watch=device,config ~/.xremap.yml &
 
 xsetwacom --set "$(xsetwacom --list devices | grep STYLUS | awk '{print $9}')" Rotate half
 
@@ -41,13 +28,9 @@ redshift &
 
 xrandr --output DP-3 --off --output DP-1 --off --output eDP-1 --mode 1920x1080 --primary --pos 0x0 --rotate normal --output DP-2 --off
 
-# Set the background image/color
 feh --bg-scale ~/ra.jpg
 
 xrdb -merge ~/.Xresources
-
-trayer --edge top --align right --SetDockType true --SetPartialStrut true \
-  --expand true --width 10 --transparent true --height 25 &
 
 if [ -x /usr/bin/nm-applet ]; then
   nm-applet --sm-disable &

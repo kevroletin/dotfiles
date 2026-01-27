@@ -1,0 +1,12 @@
+[Unit]
+Description=Key bindings
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/bin/xremap --watch=device,config %h/.xremap.yml
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

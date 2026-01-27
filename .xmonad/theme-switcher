@@ -8,6 +8,17 @@
 
 let HOME = $env.HOME
 
+def set_wallpaper [style] {
+  let dir = $"($env.HOME)/Pictures/wallpapers"
+  let x = if ($style == light) {
+    $"($dir)/light.jpg"
+  } else {
+    $"($dir)/dark.png"
+  }
+  print $"feh --bg-scale ($x)"
+  feh --bg-scale $x
+}
+
 def link_config [file_path, style] {
   let x = $"($HOME)/($file_path)"
   print $"($x).($style)" $x
@@ -30,7 +41,8 @@ def expand_templates [style] {
 def set_bunch_of_themes [style] {
   expand_templates $style
 
-  systemctl --user restart trayer.service
+  # restarted by xmobar dependency in systemd
+  # systemctl --user restart trayer.service
   systemctl --user restart xmobar.service
   systemctl --user restart dunst.service
 }
@@ -47,6 +59,8 @@ def set_theme [style] {
   set_bunch_of_themes $style
   set_alacritty_theme $style
   set_rofi_theme $style
+
+  set_wallpaper $style
 
   notify-send 'Desktop theme update'
 }
