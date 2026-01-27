@@ -5,7 +5,7 @@ let HOME = $env.HOME
 def copy_config [file_path, style] {
   let x = $"($HOME)/($file_path)"
   print $"($x).($style)" $x
-  cp $"($x).($style)" $x
+  ln -f --symbolic --relative $"($x).($style)" $x
 }
 
 def set_trayer_theme [style] {

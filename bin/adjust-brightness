@@ -37,6 +37,13 @@ def "main set" [value] {
 
 def main [] {
   let x = ($current_val * 100.0 / $max_val | into int)
-  let emoji = if ($x == 100) { "☀️" } else { "" }
-  $"($emoji) ($x)%"
+  let bars = (
+    [ ["ꕤ ꕤ ꕤ ❊"]
+    , ["ꕤ ꕤ ❊ ❊"]
+    , ["ꕤ ❊ ❊ ❊"]
+    , ["❊ ❊ ❊ ❊"]
+    , ["❊-❊-❊-❊"] ]
+  )
+  let res = $bars | get ($x / 25 | into int) | str join
+  $"[($res)]"
 }

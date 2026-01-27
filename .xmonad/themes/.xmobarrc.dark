@@ -37,11 +37,10 @@ Config {
         , Run Swap ["-w", "2", "-t","<usedratio>%"] 10
         , Run Date "%a %b %_d" "date" 10
         , Run XMonadLog
-        , Run Com "battery_bar" [] "bat_bar" 30
         , Run Com "adjust-brightness" [] "bright" 10
       ]
   , sepChar = "%"
   , alignSep = "}{"
-  , template = "%XMonadLog% }{ %bright% %bat_bar% %battery% %cpu% %memory% - %swap% <fc=#1d8016>%date%</fc>"
+  , template = "%XMonadLog% }{ %bright% %cpu% %memory% - %swap% <fc=#1d8016>%date%</fc>"
   , allDesktops = True
 }
