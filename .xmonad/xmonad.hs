@@ -255,8 +255,11 @@ myKeys x = M.union (strippedKeys x) (M.fromList (keysToAdd x))
     strippedKeys t = foldr M.delete (keys def t) (keysToRemove t)
 
 mySB :: StatusBarConfig
-mySB = statusBarProp "xmobar ~/.xmobarrc" (copiesPP (pad . xmobarColor "orange" "black") myPP)
+mySB = res { sbStartupHook = spawn "systemctl --user start xmobar.service"
+           , sbCleanupHook = spawn "systemctl --user stop xmobar.service"
+           }
   where
+    res = statusBarProp "xmobar ~/.xmobarrc" (copiesPP (pad . xmobarColor "orange" "black") myPP)
     myPP =
       xmobarPP
         { ppCurrent = xmobarColor "#e0dc19" "" . wrap "[" "]",

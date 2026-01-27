@@ -1,0 +1,14 @@
+[Unit]
+Description=XMobar status bar
+PartOf=graphical-session.target
+After=graphical-session-pre.target
+Wants=graphical-session-pre.target
+
+[Service]
+Type=simple
+ExecStart=/home/behemoth/.local/bin/xmobar
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

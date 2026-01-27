@@ -50,6 +50,7 @@
 !/.config/systemd/user/proxy-config.service
 !/.config/systemd/user/theme-switcher.service
 !/.config/systemd/user/voxtype.service
+!/.config/systemd/user/xmobar.service
 !/.config/wezterm/wezterm.lua
 !/.config/yazi/keymap-default.toml
 !/.config/yazi/keymap.toml
@@ -87,7 +88,8 @@
 !/.spacemacs.d/user-theme/README.org
 !/.tmux.conf
 !/.vimrc
-!/.xmobarrc
+!/.xmobarrc.dark
+!/.xmobarrc.light
 !/.xmonad/hints.org
 !/.xmonad/package.yaml
 !/.xmonad/setup-proxy

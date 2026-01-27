@@ -2,33 +2,45 @@
 
 let HOME = $env.HOME
 
-def set-alacritty-theme [style] {
+def copy_config [file_path, style] {
+  let x = $"($HOME)/($file_path)"
+  print $"($x).($style)" $x
+  cp $"($x).($style)" $x
+}
+
+def set_xmobar_theme [style] {
+  copy_config ".xmobarrc" $style
+  systemctl --user restart xmobar.service
+}
+
+def set_alacritty_theme [style] {
   let x = $"($HOME)/.config/alacritty"
   let template = $'general.import = [ "($x)/themes_git/themes/solarized_($style).toml" ]'
   $template | save --force $"($x)/theme.toml"
 }
 
-def set-dunst-theme [style] {
-  let x = $"($HOME)/.config/dunst/dunstrc"
-  cp $"($x).($style)" $x
-
-  systemctl --user restart dunst.service | complete
+def set_dunst_theme [style] {
+  copy_config ".config/dunst/dunstrc" $style
+  systemctl --user restart dunst.service
 }
 
-def set-helix-theme [style] {
+def set_helix_theme [style] {
   let x = $"($HOME)/.config/helix/themes/adaptive.toml"
   $'inherits = "solarized_($style)"' | save --force $x
 }
 
-def set-theme [style] {
-  set-dunst-theme $style
-  set-alacritty-theme $style
-  set-helix-theme $style
+def set_theme [style] {
+  let current = system_theme
+
+  set_dunst_theme $style
+  set_alacritty_theme $style
+  set_helix_theme $style
+  set_xmobar_theme $style
 
   notify-send 'Desktop theme update'
 }
 
-def system-theme [] {
+def system_theme [] {
   if (gsettings get org.gnome.desktop.interface color-scheme | str contains 'dark') {
     'dark'
   } else {
@@ -36,18 +48,35 @@ def system-theme [] {
   }
 }
 
-let h = date now | format date "%H" | into int
-if (6 <= $h and $h <= 18) {
-    set-theme 'light'
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
-} else {
-    set-theme 'dark'
-    gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+def "main monitor" [] {
+  gsettings monitor org.gnome.desktop.interface color-scheme
+      | lines
+      | each {|line|
+          print $line
+          system_theme | set_theme $in
+      }
 }
 
-gsettings monitor org.gnome.desktop.interface color-scheme
-    | lines
-    | each {|line|
-        print $line
-        system-theme | set-theme $in
+def "main set" [new_style] {
+  let new_theme = if ($new_style == light) {
+      'prefer-light'
+    } else if ($new_style == dark) {
+      'prefer-dark'
+    } else {
+      print "expecting 'light' or 'dark'"
+      exit 1
     }
+  gsettings set org.gnome.desktop.interface color-scheme $new_theme
+  set_theme $new_style
+}
+
+def main [] {
+  let h = date now | format date "%H" | into int
+  if (6 <= $h and $h <= 18) {
+      set_theme 'light'
+      gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
+  } else {
+      set_theme 'dark'
+      gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+  }
+}
