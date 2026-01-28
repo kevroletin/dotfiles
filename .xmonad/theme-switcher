@@ -40,11 +40,6 @@ def expand_templates [style] {
 
 def set_bunch_of_themes [style] {
   expand_templates $style
-
-  # restarted by xmobar dependency in systemd
-  # systemctl --user restart trayer.service
-  systemctl --user restart xmobar.service
-  systemctl --user restart dunst.service
 }
 
 def set_alacritty_theme [style] {
@@ -61,8 +56,6 @@ def set_theme [style] {
   set_rofi_theme $style
 
   set_wallpaper $style
-
-  notify-send 'Desktop theme update'
 }
 
 def system_theme [] {
@@ -73,12 +66,21 @@ def system_theme [] {
   }
 }
 
+def restart_deamons [] {
+  # restarted by xmobar dependency in systemd
+  # systemctl --user restart trayer.service
+  systemctl --user restart xmobar.service
+  systemctl --user restart dunst.service
+}
+
 def "main monitor" [] {
   gsettings monitor org.gnome.desktop.interface color-scheme
       | lines
       | each {|line|
           print $line
           system_theme | set_theme $in
+          restart_deamons
+          notify-send 'Desktop theme update'
       }
 }
 
