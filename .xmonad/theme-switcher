@@ -95,7 +95,7 @@ def "main set" [new_style] {
   set_theme $new_style
 }
 
-def main [] {
+def "main set-by-time" [] {
   let h = date now | format date "%H" | into int
   if (6 <= $h and $h <= 18) {
       set_theme 'light'
@@ -104,4 +104,7 @@ def main [] {
       set_theme 'dark'
       gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
   }
+}
+
+def main [] {
 }
