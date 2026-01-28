@@ -172,21 +172,6 @@ keysToAdd x =
     ((modm .|. shiftMask .|. controlMask, xK_k), windows W.swapUp),
     ((modm .|. shiftMask, xK_j), rotAllDown),
     ((modm .|. shiftMask, xK_k), rotAllUp),
-    ( (modm, xK_j),
-      do windows W.focusDown
-      -- withFocused (sendMessage . maximizeRestore)
-    ),
-    ( (modm, xK_k),
-      do windows W.focusUp
-      -- withFocused (sendMessage . maximizeRestore)
-    ),
-    ((modm, xK_Return), windows W.swapMaster),
-    ((modMask x, xK_m), windows W.focusMaster),
-    ((modMask x .|. shiftMask, xK_m), toggleTouchpad),
-    ((modMask x .|. shiftMask, xK_b), toggleEarbuds),
-    -- , ((modMask x, xK_c), toggleCapture)
-    ((modMask x, xK_m), muteSound),
-    ((modMask x, xK_s), stopWhisper),
     -- Move view to right or left workspace
     ((modMask x, xK_Left), prevWS),
     ((modMask x, xK_Right), nextWS),
@@ -264,10 +249,6 @@ keysToRemove x =
     (modm .|. shiftMask .|. controlMask, xK_k),
     (modm .|. shiftMask, xK_j),
     (modm .|. shiftMask, xK_k),
-    (modm, xK_j),
-    (modm, xK_k),
-    (modm, xK_Return),
-    (modMask x, xK_m),
     -- quake console
     (modMask x, xK_grave),
     -- scratchpad numen
