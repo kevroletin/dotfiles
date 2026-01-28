@@ -153,7 +153,7 @@ def compute_file_conflicts [--ls-res: table] {
 
   $ls_res
   | default (ls -a **/*)
-  | where type == file
+  | where type in [file symlink]
   | get name
   | each { |file|
     let exists = $file | to_old_path | path exists
