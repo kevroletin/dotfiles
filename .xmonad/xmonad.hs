@@ -1,4 +1,7 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 import Data.List (isPrefixOf)
 import qualified Data.Map as M
@@ -11,6 +14,7 @@ import XMonad
 import XMonad.Actions.CopyWindow
 import XMonad.Actions.CycleRecentWS
 import XMonad.Actions.CycleWS
+import XMonad.Actions.RotSlaves
 import XMonad.Actions.UpKeys
 import XMonad.Actions.UpdatePointer
 import XMonad.Config.Desktop (desktopConfig)
@@ -19,10 +23,12 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
-import XMonad.Layout.Spacing
-import XMonad.Layout.Maximize
+import XMonad.Layout.LayoutModifier
 import XMonad.Layout.NoBorders
-import XMonad.Actions.RotSlaves
+import XMonad.Layout.Renamed
+import XMonad.Layout.Spacing
+import XMonad.Prelude (partition)
+import qualified XMonad.StackSet as S
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.Hacks as Hacks
 import XMonad.Util.NamedScratchpad
@@ -162,12 +168,20 @@ configureXset = do spawnOnce "~/bin/configure-xset &"
 -- mod4Mask - win
 keysToAdd :: XConfig l -> [KeyBinding]
 keysToAdd x =
-  [
-    ((modm .|. shiftMask .|. controlMask, xK_j), windows W.swapDown),
+  [ ((modm .|. shiftMask .|. controlMask, xK_j), windows W.swapDown),
     ((modm .|. shiftMask .|. controlMask, xK_k), windows W.swapUp),
     ((modm .|. shiftMask, xK_j), rotAllDown),
     ((modm .|. shiftMask, xK_k), rotAllUp),
-
+    ( (modm, xK_j),
+      do windows W.focusDown
+      -- withFocused (sendMessage . maximizeRestore)
+    ),
+    ( (modm, xK_k),
+      do windows W.focusUp
+      -- withFocused (sendMessage . maximizeRestore)
+    ),
+    ((modm, xK_Return), windows W.swapMaster),
+    ((modMask x, xK_m), windows W.focusMaster),
     ((modMask x .|. shiftMask, xK_m), toggleTouchpad),
     ((modMask x .|. shiftMask, xK_b), toggleEarbuds),
     -- , ((modMask x, xK_c), toggleCapture)
@@ -202,7 +216,7 @@ keysToAdd x =
     ((modMask x, xK_z), do safeSpawn "xscreensaver-command" ["-lock"]),
     ((modMask x .|. shiftMask, xK_z), do spawn "sleep 1s; xset dpms force off"),
     -- Float and enlarge selected window
-    ((modMask x, xK_f), withFocused (sendMessage . maximizeRestore)),
+    ((modMask x, xK_f), sendMessage maximizeFocusedToggle),
     -- resizing the master/slave ratio
     ((modm, xK_comma), sendMessage Shrink),
     ((modm, xK_period), sendMessage Expand),
@@ -246,18 +260,16 @@ myUpKeys _conf =
 -- Unused default key bindings
 keysToRemove :: XConfig l -> [KeyCombination]
 keysToRemove x =
-  [
-    (modm .|. shiftMask .|. controlMask, xK_j),
+  [ (modm .|. shiftMask .|. controlMask, xK_j),
     (modm .|. shiftMask .|. controlMask, xK_k),
     (modm .|. shiftMask, xK_j),
     (modm .|. shiftMask, xK_k),
-    -- (modm, xK_j),
-    -- (modm, xK_k),
-
+    (modm, xK_j),
+    (modm, xK_k),
+    (modm, xK_Return),
+    (modMask x, xK_m),
     -- quake console
     (modMask x, xK_grave),
-    -- temporarily mute sound
-    (modMask x, xK_m),
     -- scratchpad numen
     (modMask x, xK_n),
     -- rofi is used as programs launcher
@@ -265,6 +277,7 @@ keysToRemove x =
     (modMask x, xK_p),
     -- This one used for history cycle
     (modMask x, xK_Tab),
+    (modm .|. shiftMask, xK_Tab),
     -- These are remapped to < and >
     (modm, xK_h),
     (modm, xK_l),
@@ -331,11 +344,12 @@ main =
       }
   where
     myLayoutHook =
-      smartSpacingWithEdge 7
-      $ avoidStruts
-      $ maximize -- M-f to temporary maximize windows
-      $ smartBorders -- Don't put borders on fullFloatWindows
-      $ layoutHook desktopConfig
+      renamed [CutWordsLeft 1] $
+        smartSpacingWithEdge 7 $
+          avoidStruts $
+            maximizeFocused $ -- M-f to temporary maximize windows
+              smartBorders -- Don't put borders on fullFloatWindows
+                (Tall 1 (3 / 100) (1 / 2) ||| Full)
     redColor = "#Cd2626"
 
 myWorkspaces :: [String]
@@ -358,3 +372,40 @@ myManageHook =
     myClassMailShifts = ["Mail", "Thunderbird"]
     myClassChatShifts = ["Pidgin", "skype", "slack", "Telegram"]
     myClassFloats = ["Gimp", "TeamViewer", "gtk-recordmydesktop", "Gtk-recordmydesktop"]
+
+data MaximizeFocused a = MaximizeFocused Dimension Bool deriving (Read, Show)
+
+maximizeFocused :: l Window -> ModifiedLayout MaximizeFocused l Window
+maximizeFocused = ModifiedLayout $ MaximizeFocused 25 False
+
+_maximizeFocusedWithPadding :: Dimension -> l Window -> ModifiedLayout MaximizeFocused l Window
+_maximizeFocusedWithPadding padding = ModifiedLayout $ MaximizeFocused padding False
+
+newtype MaximizeFocusedToggle = MaximizeFocusedToggle () deriving (Eq)
+
+instance Message MaximizeFocusedToggle
+
+maximizeFocusedToggle :: MaximizeFocusedToggle
+maximizeFocusedToggle = MaximizeFocusedToggle ()
+
+instance LayoutModifier MaximizeFocused Window where
+  modifierDescription (MaximizeFocused _ on) = if on then "F" else ""
+  pureModifier (MaximizeFocused padding on) rect (Just (S.Stack focused _ _)) wrs =
+    if on
+      then (maxed ++ rest, Nothing)
+      else (wrs, Nothing)
+    where
+      (toMax, rest) = partition (\(w, _) -> w == focused) wrs
+      maxed = map (\(w, _) -> (w, maxRect)) toMax
+      maxRect =
+        Rectangle
+          (rect_x rect + fromIntegral padding)
+          (rect_y rect + fromIntegral padding)
+          (rect_width rect - padding * 2)
+          (rect_height rect - padding * 2)
+  pureModifier _ _ _ wrs = (wrs, Nothing)
+
+  pureMess (MaximizeFocused padding on) m =
+    case fromMessage m of
+      Just (MaximizeFocusedToggle ()) -> Just (MaximizeFocused padding (not on))
+      _ -> Nothing
