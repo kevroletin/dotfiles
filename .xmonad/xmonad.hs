@@ -19,8 +19,10 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
+import XMonad.Layout.Spacing
 import XMonad.Layout.Maximize
 import XMonad.Layout.NoBorders
+import XMonad.Actions.RotSlaves
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.Hacks as Hacks
 import XMonad.Util.NamedScratchpad
@@ -160,7 +162,13 @@ configureXset = do spawnOnce "~/bin/configure-xset &"
 -- mod4Mask - win
 keysToAdd :: XConfig l -> [KeyBinding]
 keysToAdd x =
-  [ ((modMask x .|. shiftMask, xK_m), toggleTouchpad),
+  [
+    ((modm .|. shiftMask .|. controlMask, xK_j), windows W.swapDown),
+    ((modm .|. shiftMask .|. controlMask, xK_k), windows W.swapUp),
+    ((modm .|. shiftMask, xK_j), rotAllDown),
+    ((modm .|. shiftMask, xK_k), rotAllUp),
+
+    ((modMask x .|. shiftMask, xK_m), toggleTouchpad),
     ((modMask x .|. shiftMask, xK_b), toggleEarbuds),
     -- , ((modMask x, xK_c), toggleCapture)
     ((modMask x, xK_m), muteSound),
@@ -238,7 +246,15 @@ myUpKeys _conf =
 -- Unused default key bindings
 keysToRemove :: XConfig l -> [KeyCombination]
 keysToRemove x =
-  [ -- quake console
+  [
+    (modm .|. shiftMask .|. controlMask, xK_j),
+    (modm .|. shiftMask .|. controlMask, xK_k),
+    (modm .|. shiftMask, xK_j),
+    (modm .|. shiftMask, xK_k),
+    -- (modm, xK_j),
+    -- (modm, xK_k),
+
+    -- quake console
     (modMask x, xK_grave),
     -- temporarily mute sound
     (modMask x, xK_m),
@@ -282,8 +298,8 @@ mySB =
         { ppCurrent = wrap "⮞ " " ⮜",
           ppTitle = id,
           ppHidden = noScratchPad,
-          ppSep = "",
-          ppLayout = const " | "
+          ppSep = "|",
+          ppLayout = id
         }
     noScratchPad ws = if ws == "NSP" then "" else ws
 
@@ -315,10 +331,11 @@ main =
       }
   where
     myLayoutHook =
-      avoidStruts $
-        maximize $ -- M-f to temporary maximize windows
-          smartBorders $ -- Don't put borders on fullFloatWindows
-            layoutHook desktopConfig
+      smartSpacingWithEdge 7
+      $ avoidStruts
+      $ maximize -- M-f to temporary maximize windows
+      $ smartBorders -- Don't put borders on fullFloatWindows
+      $ layoutHook desktopConfig
     redColor = "#Cd2626"
 
 myWorkspaces :: [String]
