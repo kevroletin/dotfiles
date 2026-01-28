@@ -103,12 +103,10 @@
 !/.xmonad/themes/dunstrc.template
 !/.xmonad/themes/expand.nu
 !/.xmonad/themes/misc/firefox-tree-style-tabs.css
-!/.xmonad/themes/.trayer_color
 !/.xmonad/themes/.trayer_color.template
 !/.xmonad/themes/vars_dark.nuon
 !/.xmonad/themes/vars_light.nuon
 !/.xmonad/theme-switcher
-!/.xmonad/themes/.xmobarrc
 !/.xmonad/themes/.xmobarrc.template
 !/.xmonad/xmonad
 !/.xmonad/xmonad.desktop
