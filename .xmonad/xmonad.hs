@@ -112,8 +112,8 @@ openInEmacs args = ifProcessRuns "emacs" viaClient viaEmacs
     viaClient = safeSpawn "emacsclient" ("--no-wait" : args)
     viaEmacs = safeSpawn "emacs" args
 
-stopWhisper :: X ()
-stopWhisper = do
+_stopWhisper :: X ()
+_stopWhisper = do
   safeSpawn "/bin/bash" ["-c", "echo load ~/.config/numen/phrases/*.phrases| numenc"]
   safeSpawn "flatpak" ["run", "net.mkiol.SpeechNote", "--action", "stop-listening"]
 
@@ -126,15 +126,6 @@ openObsidian =
     "obsidian"
     (return ())
     (safeSpawn "obsidian" ["obsidian://open?vault=share&file=Dashboard"])
-
-toggleTouchpad :: X ()
-toggleTouchpad = spawn "~/bin/toggleTouchpad"
-
-toggleEarbuds :: X ()
-toggleEarbuds = spawn "~/bin/toggleEarbuds"
-
-muteSound :: X ()
-muteSound = spawn "~/bin/mute"
 
 -- pause numen and start voxtype, so that numen doesn't jump around while transcribing speech
 voxtypeStart :: X ()
@@ -343,6 +334,7 @@ myManageHook =
       [resource =? c --> doF (W.shift "mail") | c <- myClassMailShifts],
       [resource =? c --> doF (W.shift "chat") | c <- myClassChatShifts],
       [(appName =? "Alert" <&&> className =? "firefox") --> doFloat],
+      [className =? "xmonad-center-float" --> doCenterFloat],
       [className =? i --> doFloat | i <- myClassFloats],
       [(className =? "TeamViewer" <&&> stringProperty "WM_NAME" =? "") --> doIgnore],
       [isFullscreen --> (doF W.focusDown <+> doFullFloat)],
@@ -352,7 +344,7 @@ myManageHook =
     myClassWebShifts = ["Navigator", "Firefox"]
     myClassMailShifts = ["Mail", "Thunderbird"]
     myClassChatShifts = ["Pidgin", "skype", "slack", "Telegram"]
-    myClassFloats = ["Gimp", "TeamViewer", "gtk-recordmydesktop", "Gtk-recordmydesktop"]
+    myClassFloats = ["Gimp", "TeamViewer", "gtk-recordmydesktop", "Gtk-recordmydesktop", "xmonad-float"]
 
 data MaximizeFocused a = MaximizeFocused Dimension Bool deriving (Read, Show)
 

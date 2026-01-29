@@ -1,0 +1,80 @@
+#!/usr/bin/env nu
+
+def pamix [] {
+  let idx = job spawn {
+    (^alacritty --class=xmonad-center-float
+      -o window.dimensions.columns=80 -o window.dimensions.lines=20
+      -e pamix)
+    "done" | job send 0
+  }
+  # wait until pamix started and ready to handle input
+  let win_id = do {
+    mut pid = 0
+    loop {
+      sleep 100ms
+      let pids = job list | where id == $idx | get pids | first
+      if ($pids | is-not-empty) {
+        $pid = ($pids | first | into int)
+        break
+      }
+    }
+    sleep 100ms
+    xdotool search --pid $pid | into int
+  }
+  xdotool key --window $win_id F3
+  job recv
+}
+
+let keys = {
+  a: {
+    group: adjust
+    keys: {
+      v: ["volume"
+          { || pamix } ]
+    }
+  }
+  t: {
+    group: toggle
+    keys: {
+      t: [ transparency
+           { || } ]
+    }
+  }
+}
+
+let key_list = flatten_keys [] "" { group: "", keys: $keys }
+
+def flatten_keys [res, acc, value] {
+  match ($value | describe -d | get type) {
+    "list" => ($res | append {key: $acc, desc: ($value | first), act: ($value | get 1)}),
+    "record" => {
+      let $name = $value.group
+      $value.keys
+      | items { |k, v| {key: $k, value: $v} }
+      | reduce --fold $res { |$x, fold|
+        flatten_keys $fold $"($acc)($x.key)" $x.value
+      }
+    }
+  }
+}
+
+def open_menu [] {
+  each { $"($in.key)\t($in.desc)" } | to text | (/usr/bin/rofi
+    -dmenu
+    -window-title "Which key"
+    -cycle
+    -matching prefix
+    -selected-row
+    -format i
+    -auto-select
+  )
+}
+
+def interact [] {
+  let selection = $key_list | open_menu | into int
+  $key_list | get $selection
+}
+
+interact | do $in.act
+
+
