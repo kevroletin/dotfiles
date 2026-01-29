@@ -23,6 +23,7 @@ import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
+import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.NoBorders
 import XMonad.Layout.Renamed
@@ -192,7 +193,9 @@ keysToAdd x =
     ((modMask x .|. shiftMask, xK_b), do spawn "~/.xmonad/toggle-xmobar"), -- kill xmobar
     ((modMask x, xK_z), do safeSpawn "xscreensaver-command" ["-lock"]),
     ((modMask x .|. shiftMask, xK_z), do spawn "sleep 1s; xset dpms force off"),
-    ((modMask x .|. shiftMask, xK_space), do spawn "~/.xmonad/which-key"),
+    ((modMask x, xK_space), do spawn "~/.xmonad/which-key"),
+    ((modMask x .|. shiftMask, xK_space), sendMessage NextLayout),
+
     -- Float and enlarge selected window
     ((modMask x, xK_f), sendMessage maximizeFocusedToggle),
     -- resizing the master/slave ratio
@@ -216,7 +219,10 @@ keysToAdd x =
       do
         dir <- liftIO dirFromClipboard
         safeSpawn "alacritty" ["--working-directory", dir]
-    )
+    ),
+    --
+    ((modMask x, xK_F5), sendMessage (JumpToLayout "Tall")),
+    ((modMask x, xK_F6), sendMessage (JumpToLayout "Full"))
   ]
     -- copy to workspace
     ++ [ ((m .|. modm, k), windows $ f i)
@@ -259,6 +265,10 @@ keysToRemove x =
     (modm, xK_period),
     --
     (modm .|. shiftMask, xK_Return),
+    (modMask x .|. shiftMask, xK_space),
+
+    -- next layout
+    (modMask x,               xK_space),
     (modMask x .|. shiftMask, xK_space)
   ]
   where
@@ -305,6 +315,11 @@ myCommands =
         , ("swap-with-next"            , windows W.swapDown)
         , ("swap-with-master"          , windows W.swapMaster)
         , ("kill-window"               , kill)
+        --
+        , ("layout-next"               , sendMessage NextLayout)
+        , ("layout-set-full"           , sendMessage (JumpToLayout "Full"))
+        , ("layout-set-tall"           , sendMessage (JumpToLayout "Tall"))
+        , ("layout-toggle-focused-maximize", sendMessage maximizeFocusedToggle)
         ]
 
 myServerModeEventHook = serverModeEventHookCmd' $ return myCommands

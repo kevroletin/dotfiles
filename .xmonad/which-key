@@ -1,5 +1,9 @@
 #!/usr/bin/env nu
 
+def --wrapped xmonadctl [...$rest] {
+  run-external "/home/behemoth/.local/bin/xmonadctl" ...$rest
+}
+
 def pamix [] {
   let idx = job spawn {
     (^alacritty --class=xmonad-center-float
@@ -54,11 +58,11 @@ let keys = {
           { || pamix }]
     }
   }
-  t: {
-    group: toggle
+  "d": {
+    group: decrease
     keys: {
       t: [transparency
-          { || toggle-transparenty }]
+          { || less-transparenty }]
     }
   }
   "i": {
@@ -68,11 +72,21 @@ let keys = {
           { || more-transparenty }]
     }
   }
-  "d": {
-    group: decrease
+  "l": {
+    group: layout
+    keys: {
+      l: [next { || xmonadctl "layout-next" }]
+      n: [next { || xmonadctl "layout-next" }]
+      m: [maximized { || xmonadctl "layout-set-full" }]
+      t: [tall { || xmonadctl "layout-set-tall" }]
+      f: ["maximize focused" { || xmonadctl "layout-toggle-focused-maximize" }]
+    }
+  }
+  t: {
+    group: toggle
     keys: {
       t: [transparency
-          { || less-transparenty }]
+          { || toggle-transparenty }]
     }
   }
 }
