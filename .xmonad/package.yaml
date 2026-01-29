@@ -31,3 +31,10 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+  xmonadctl:
+    main:                xmonadctl.hs
+    source-dirs:         bin
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N

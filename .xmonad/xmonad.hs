@@ -37,6 +37,7 @@ import XMonad.Util.Run
     safeSpawn,
   )
 import XMonad.Util.SpawnOnce
+import XMonad.Hooks.ServerMode
 
 stripText :: String -> String
 stripText = T.unpack . T.strip . T.pack
@@ -289,6 +290,29 @@ mySB =
         }
     noScratchPad ws = if ws == "NSP" then "" else ws
 
+------------------------------------------------------------------------
+-- External commands
+myCommands :: [(String, X ())]
+myCommands =
+        [ ("decrease-master-size"      , sendMessage Shrink)
+        , ("increase-master-size"      , sendMessage Expand)
+        , ("decrease-master-count"     , sendMessage $ IncMasterN (-1))
+        , ("increase-master-count"     , sendMessage $ IncMasterN 1)
+        , ("focus-prev"                , windows W.focusUp)
+        , ("focus-next"                , windows W.focusDown)
+        , ("focus-master"              , windows W.focusMaster)
+        , ("swap-with-prev"            , windows W.swapUp)
+        , ("swap-with-next"            , windows W.swapDown)
+        , ("swap-with-master"          , windows W.swapMaster)
+        , ("kill-window"               , kill)
+        ]
+
+myServerModeEventHook = serverModeEventHookCmd' $ return myCommands
+
+listMyServerCmds :: X ()
+listMyServerCmds = spawn ("echo '" ++ asmc ++ "' | xmessage -file -")
+    where asmc = concat $ "Available commands:" : map (\(x, _)-> "    " ++ x) myCommands
+
 main :: IO ()
 main =
   xmonad
@@ -313,16 +337,17 @@ main =
           windows $ W.greedyView "work"
           configureXset,
         workspaces = myWorkspaces,
-        handleEventHook = handleEventHook desktopConfig <> Hacks.trayerAboveXmobarEventHook
+        handleEventHook = 
+          myServerModeEventHook <> handleEventHook desktopConfig <> Hacks.trayerAboveXmobarEventHook
       }
   where
     myLayoutHook =
-      renamed [CutWordsLeft 1] $
-        smartSpacingWithEdge 7 $
-          avoidStruts $
-            maximizeFocused $ -- M-f to temporary maximize windows
-              smartBorders -- Don't put borders on fullFloatWindows
-                (Tall 1 (3 / 100) (1 / 2) ||| Full)
+        renamed [CutWordsLeft 1] $
+          smartSpacingWithEdge 7 $
+            avoidStruts $
+              maximizeFocused $ -- M-f to temporary maximize windows
+                smartBorders -- Don't put borders on fullFloatWindows
+                  (Tall 1 (3 / 100) (1 / 2) ||| Full)
     redColor = "#Cd2626"
 
 myWorkspaces :: [String]
