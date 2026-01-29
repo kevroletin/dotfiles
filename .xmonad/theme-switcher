@@ -26,7 +26,7 @@ def link_config [file_path, style] {
 }
 
 def set_rofi_theme [style] {
-  link_config .config/rofi/config.rasi $style
+  $'@theme "@($style)"' | write -f .config/rofi/adaptive_theme.rasi
 }
 
 # trayer, xmobar, dunst

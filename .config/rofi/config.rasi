@@ -1,0 +1,4 @@
+configuration {
+  font: "UbuntuMono Nerd Font Mono 20";
+}
+@theme "adaptive_theme"
