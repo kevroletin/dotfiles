@@ -25,19 +25,30 @@ def pamix [] {
   job recv
 }
 
+def toggle-transparenty [] {
+  let config = $"($env.HOME)/.config/alacritty/alacritty.toml"
+  let template = $"($config).template"
+  let opacity = if (open -r $config | str contains "opacity = 1") {
+    0.85
+  } else {
+    1
+  }
+  nu $"($env.HOME)/.xmonad/expand-template" --file $template --vars ({opacity: $opacity} | to nuon)
+}
+
 let keys = {
   a: {
     group: adjust
     keys: {
-      v: ["volume"
-          { || pamix } ]
+      v: [volume
+          { || pamix }]
     }
   }
   t: {
     group: toggle
     keys: {
-      t: [ transparency
-           { || } ]
+      t: [transparency
+          { || toggle-transparenty }]
     }
   }
 }

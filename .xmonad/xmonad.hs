@@ -187,10 +187,11 @@ keysToAdd x =
     ((modMask x, xK_F3), openObsidian),
     ((modMask x, xK_F4), killOrSpawn "redshift" []),
     -- Toggle xmobar
-    ((modMask x, xK_b), sendMessage ToggleStruts), -- adjuct layout
+    ((modMask x, xK_b), sendMessage ToggleStruts),
     ((modMask x .|. shiftMask, xK_b), do spawn "~/.xmonad/toggle-xmobar"), -- kill xmobar
     ((modMask x, xK_z), do safeSpawn "xscreensaver-command" ["-lock"]),
     ((modMask x .|. shiftMask, xK_z), do spawn "sleep 1s; xset dpms force off"),
+    ((modMask x .|. shiftMask, xK_space), do spawn "~/.xmonad/which-key"),
     -- Float and enlarge selected window
     ((modMask x, xK_f), sendMessage maximizeFocusedToggle),
     -- resizing the master/slave ratio
@@ -205,7 +206,6 @@ keysToAdd x =
     -- See Graphics.X11.ExtraTypes.XF86
     ((0, xF86XK_AudioLowerVolume), spawn "~/bin/adjust-brightness -"),
     ((0, xF86XK_AudioRaiseVolume), spawn "~/bin/adjust-brightness +"),
-    -- , ((0, xF86XK_AudioMute), spawn "sleep 0.5s; xset dpms force off")
     ((0, xF86XK_AudioMute), spawn "~/.xmonad/toggle-theme"),
     ((0, xK_Scroll_Lock), voxtypeStart), -- see myUpKeys for the stop action
     -- Pin(unpin) window to all workspaces
@@ -257,7 +257,8 @@ keysToRemove x =
     (modm, xK_comma),
     (modm, xK_period),
     --
-    (modm .|. shiftMask, xK_Return)
+    (modm .|. shiftMask, xK_Return),
+    (modMask x .|. shiftMask, xK_space)
   ]
   where
     modm = modMask x

@@ -46,8 +46,8 @@
 !/.config/ranger/rc.conf
 !/.config/ranger/rifle.conf
 !/.config/redshift.conf
-!/.config/rofi/config.rasi.dark
-!/.config/rofi/config.rasi.light
+!/.config/rofi/adaptive_theme.rasi
+!/.config/rofi/config.rasi
 !/.config/rofi/dark.rasi
 !/.config/rofi/light.rasi
 !/.config/systemd/user/proxy-config.service
@@ -93,6 +93,7 @@
 !/.spacemacs.d/user-theme/README.org
 !/.tmux.conf
 !/.vimrc
+!/.xmonad/expand-template
 !/.xmonad/hints.org
 !/.xmonad/package.yaml
 !/.xmonad/setup-proxy
@@ -101,14 +102,13 @@
 !/.xmonad/start-xmonad
 !/.xmonad/themes/dunstrc
 !/.xmonad/themes/dunstrc.template
-!/.xmonad/themes/expand.nu
 !/.xmonad/themes/misc/firefox-tree-style-tabs.css
 !/.xmonad/themes/.trayer_color.template
-!/.xmonad/themes/vars_dark.nuon
-!/.xmonad/themes/vars_light.nuon
+!/.xmonad/themes/vars/dark.nuon
+!/.xmonad/themes/vars/light.nuon
 !/.xmonad/theme-switcher
 !/.xmonad/themes/.xmobarrc.template
-!/.xmonad/xmonad
+!/.xmonad/which-key
 !/.xmonad/xmonad.desktop
 !/.xmonad/xmonad.hs
 !/.xremap.yml

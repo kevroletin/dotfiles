@@ -26,16 +26,16 @@ def link_config [file_path, style] {
 }
 
 def set_rofi_theme [style] {
-  $'@theme "@($style)"' | write -f .config/rofi/adaptive_theme.rasi
+  $'@theme "($style)"' | save -f $"($HOME)/.config/rofi/adaptive_theme.rasi"
 }
 
 # trayer, xmobar, dunst
 def expand_templates [style] {
   let themes_dir = $"($env.HOME)/.xmonad/themes/"
-  let script = $"($themes_dir)/expand.nu"
-  let vars = $"($themes_dir)/vars_($style).nuon"
+  let script = $"($env.HOME)/.xmonad/expand-template"
+  let vars = $"($themes_dir)/vars/($style).nuon"
 
-  nu $script --dir $themes_dir  --vars $vars
+  nu $script --dir $themes_dir --vars-file $vars
 }
 
 def set_bunch_of_themes [style] {

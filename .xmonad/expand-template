@@ -1,0 +1,59 @@
+#!/usr/bin/env nu
+#
+# find files names xxx.template
+# if xxx is a symlink, write to it's destination
+# otherwise write xxx
+#
+
+def expand [pallete] {
+  str replace -r -a '\(\$[\w\.\-]+\)' {
+    let key = $in | parse "(${res})" | get res | first
+    print $"Searching for ($key)"
+    $pallete | get $key | into string
+  }
+}
+
+def find_templates [] {
+  ls -al *
+  | where ($it.type == file) and ($it.name | str ends-with ".template")
+  | get name
+}
+
+def template_target [] {
+  let $template = $in
+
+  let bn = $template | parse "{x}.template" | get x | first
+  let target = try {
+    ls -l $bn | first | get target | default $bn
+  } catch {
+    $bn
+  }
+
+  { from: $template
+  , to: $target
+  }
+}
+
+def main [--file:string --dir:string --vars-file:string --vars:string] {
+  let parsed_vars = if ($vars | is-not-empty) { $vars | from nuon } else { {} }
+  let pallete = if ($vars_file | is-not-empty) { open $vars_file | merge $parsed_vars } else { $parsed_vars }
+
+  let dir_templates = if ($dir | is-empty) {
+    []
+  } else {
+    cd $dir
+    find_templates
+  }
+  let templates = if ($file | is-empty) {
+    $dir_templates
+  } else {
+    $dir_templates | append $file 
+  }
+
+  $templates
+  | each { template_target }
+  | each { |t|
+    open $t.from | expand $pallete | save -f $t.to
+  }
+  ignore
+}
