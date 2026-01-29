@@ -3,30 +3,30 @@
  * Rofi version: 1.7.5
  **/
 * {
-    red:                         rgba ( 220, 50, 47, 100 % );
+    red:                         #dc322f;
     selected-active-foreground:  var(background);
-    lightfg:                     rgba ( 88, 104, 117, 100 % );
-    separatorcolor:              var(foreground);
+    lightfg:                     #586875;
+    separatorcolor:              var(lightfg);
     urgent-foreground:           var(red);
     alternate-urgent-background: var(lightbg);
-    lightbg:                     rgba ( 238, 232, 213, 100 % );
+    lightbg:                     #eee8d5;
     background-color:            transparent;
     border-color:                var(foreground);
     normal-background:           var(background);
     selected-urgent-background:  var(red);
     alternate-active-background: var(lightbg);
     spacing:                     2;
-    blue:                        rgba ( 38, 139, 210, 100 % );
+    blue:                        #268bd2;
     alternate-normal-foreground: var(foreground);
     urgent-background:           var(background);
     selected-normal-foreground:  var(lightbg);
     active-foreground:           var(blue);
-    background:                  rgba ( 253, 246, 227, 100 % );
+    background:                  #fdf6e3;
     selected-active-background:  var(blue);
     active-background:           var(background);
     selected-normal-background:  var(lightfg);
-    alternate-normal-background: var(lightbg);
-    foreground:                  rgba ( 0, 43, 54, 100 % );
+    alternate-normal-background: var(background);
+    foreground:                  #002b36;
     selected-urgent-foreground:  var(background);
     normal-foreground:           var(foreground);
     alternate-urgent-foreground: var(red);
@@ -89,10 +89,11 @@ element-icon {
 window {
     padding:          5;
     background-color: var(background);
-    border:           1;
+    border:           0;
+    border-radius:    0;
 }
 mainbox {
-    padding: 0;
+    padding: 10;
     border:  0;
 }
 message {
@@ -104,12 +105,12 @@ textbox {
     text-color: var(foreground);
 }
 listview {
-    padding:      2px 0px 0px ;
+    padding:      10px 0px 0px ;
     scrollbar:    true;
     border-color: var(separatorcolor);
-    spacing:      2px ;
+    spacing:      5px ;
     fixed-height: 0;
-    border:       2px dash 0px 0px ;
+    border:       1px solid 0px 0px ;
 }
 scrollbar {
     width:        4px ;
@@ -145,7 +146,7 @@ textbox-num-sep {
     text-color: Gray;
 }
 inputbar {
-    padding:    1px ;
+    padding:    0 0 10px ;
     spacing:    0px ;
     text-color: var(normal-foreground);
     children:   [ "prompt","textbox-prompt-colon","entry","num-filtered-rows","textbox-num-sep","num-rows","case-indicator" ];
