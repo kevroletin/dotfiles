@@ -51,27 +51,28 @@ def toggle-transparenty [] {
 
 def less-transparenty [] { modify-transparenty { |x| if ($x >= 95) { 100 } else { $x + 05 } } }
 def more-transparenty [] { modify-transparenty { |x| if ($x <= 5) { 0 } else { $x - 5 } } }
+def less-brightness [] { run-external $"($env.HOME)/bin/adjust-brightness" "-" }
+def more-brightness [] { run-external $"($env.HOME)/bin/adjust-brightness" "+" }
 
 let keys = {
   a: {
     group: adjust
     keys: {
-      v: [volume
-          { || pamix }]
+      v: [volume { || pamix }]
     }
   }
   "d": {
     group: decrease
     keys: {
-      t: [transparency
-          { || less-transparenty }]
+      t: [transparency { || less-transparenty }]
+      b: [brightness { || less-brightness }]
     }
   }
   "i": {
     group: increase
     keys: {
-      t: [transparency
-          { || more-transparenty }]
+      t: [transparency { || more-transparenty }]
+      b: [brightness { || more-brightness }]
     }
   }
   "l": {
@@ -87,8 +88,8 @@ let keys = {
   t: {
     group: toggle
     keys: {
-      t: [transparency
-          { || toggle-transparenty }]
+      t: [transparency { || toggle-transparenty }]
+      d: [docks { || run-external $"($env.HOME)/.xmonad/toggle-xmobar" }]
     }
   }
 }
@@ -140,7 +141,6 @@ def main [] {
 def "main repeat" [] {
   if ($last_action_file | path exists) {
     let last_action = open $last_action_file
-    # print ($key_list | where key == $last_action | first)
     $key_list | where key == $last_action | first | each {
       do $in.act
     }
