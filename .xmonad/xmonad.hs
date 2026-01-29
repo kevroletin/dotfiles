@@ -9,6 +9,7 @@ import qualified Data.Text as T
 import Graphics.X11.ExtraTypes.XF86
 import System.Clipboard (getClipboardString)
 import System.Directory (doesDirectoryExist, getHomeDirectory)
+import System.Exit
 import System.FilePath ((</>))
 import XMonad
 import XMonad.Actions.CopyWindow
@@ -21,6 +22,7 @@ import XMonad.Config.Desktop (desktopConfig)
 import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
+import XMonad.Hooks.ServerMode
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Layout.LayoutCombinators
@@ -38,7 +40,6 @@ import XMonad.Util.Run
     safeSpawn,
   )
 import XMonad.Util.SpawnOnce
-import XMonad.Hooks.ServerMode
 
 stripText :: String -> String
 stripText = T.unpack . T.strip . T.pack
@@ -122,6 +123,11 @@ _stopWhisper = do
 _openEmacsAgenda :: X ()
 _openEmacsAgenda = openInEmacs ["~/org/personal/gtd.org"]
 
+spawnAlacritty :: X ()
+spawnAlacritty = do
+  dir <- liftIO dirFromClipboard
+  safeSpawn "alacritty" ["--working-directory", dir]
+
 openObsidian :: X ()
 openObsidian =
   ifProcessRuns
@@ -159,44 +165,50 @@ configureXset = do spawnOnce "~/bin/configure-xset &"
 
 -- mod1Mask - alt
 -- mod4Mask - win
+-- https://xmonad.github.io/xmonad-docs/xmonad/src/XMonad.Config.html
 keysToAdd :: XConfig l -> [KeyBinding]
 keysToAdd x =
-  [ ((modm .|. shiftMask .|. controlMask, xK_j), windows W.swapDown),
+  [ -- quit, or restart
+    ((modMask x .|. shiftMask, xK_q), io exitSuccess),
+    ((modMask x, xK_q), spawn "xmonad --recompile && xmonad --restart"),
+    ((modMask x .|. shiftMask, xK_c), kill1), -- close only focused copied window
+    ((modMask x .|. shiftMask .|. controlMask, xK_c), kill),
+    -- hjkl
+    ((modm .|. shiftMask .|. controlMask, xK_j), windows W.swapDown),
     ((modm .|. shiftMask .|. controlMask, xK_k), windows W.swapUp),
     ((modm .|. shiftMask, xK_j), rotAllDown),
     ((modm .|. shiftMask, xK_k), rotAllUp),
-    -- Move view to right or left workspace
+    ((modm, xK_j), windows W.focusDown),
+    ((modm, xK_k), windows W.focusUp),
     ((modMask x, xK_Left), prevWS),
     ((modMask x, xK_Right), nextWS),
-    ((modMask x, xK_h), prevWS),
-    ((modMask x, xK_l), nextWS),
-    ((modMask x, xK_p), spawn "rofi -show run"),
-    ((modMask x .|. shiftMask, xK_p), spawn "rofi -show window"),
-    -- Move focused program to right or left workspace
     ((modMask x .|. shiftMask, xK_Left), shiftToPrev),
     ((modMask x .|. shiftMask, xK_Right), shiftToNext),
+    ((modMask x, xK_h), prevWS),
+    ((modMask x, xK_l), nextWS),
+    -- spawn
+    ((modMask x, xK_p), spawn "rofi -show run"),
+    ((modMask x .|. shiftMask, xK_p), spawn "rofi -show window"),
     ((modMask x .|. controlMask, xK_Return), safeSpawn "emacs" []),
-    -- Mod + Tab enters "cycle through history" mode. Arrows to switch. Esc - exit.
+    -- Mod + Tab enters "cycle through history" mode.
     ((modMask x, xK_Tab), cycleRecentWS [xK_Tab] xK_Left xK_Right),
-    -- Handle print screen using scrot utility. Resulting pictures are in in ~/Pictures
+    -- Print screen
     ((controlMask, xK_Print), spawn "cd ~/Share; sleep 0.2; scrot -s"),
     ((0, xK_Print), spawn "cd ~/Share; scrot"),
-    -- , (((modMask x), xK_F2), spawn "~/Downloads/NormCap-0.5.9-x86_64.AppImage -l chi --clipboard-handler xclip")
-
-    -- Shortcuts to open programs
     ((modMask x, xK_F1), spawn "xprop | xmessage -file -"),
-    -- , (((modMask x), xK_F2), safeSpawn "slack" [] >> safeSpawn "firefox" [])
     ((modMask x, xK_F3), openObsidian),
     ((modMask x, xK_F4), killOrSpawn "redshift" []),
-    -- Toggle xmobar
+    -- toggle docks
     ((modMask x, xK_b), sendMessage ToggleStruts),
     ((modMask x .|. shiftMask, xK_b), do spawn "~/.xmonad/toggle-xmobar"), -- kill xmobar
+    -- lock screen
     ((modMask x, xK_z), do safeSpawn "xscreensaver-command" ["-lock"]),
     ((modMask x .|. shiftMask, xK_z), do spawn "sleep 1s; xset dpms force off"),
+    -- leader key
     ((modMask x, xK_space), do spawn "~/.xmonad/which-key"),
     ((modMask x .|. shiftMask .|. controlMask, xK_space), do spawn "~/.xmonad/which-key repeat"),
+    -- cycle layouts
     ((modMask x .|. shiftMask, xK_space), sendMessage NextLayout),
-
     -- Float and enlarge selected window
     ((modMask x, xK_f), sendMessage maximizeFocusedToggle),
     -- resizing the master/slave ratio
@@ -216,15 +228,30 @@ keysToAdd x =
     -- Pin(unpin) window to all workspaces
     ((modm .|. shiftMask, xK_a), windows copyToAll),
     ((modm, xK_a), killAllOtherCopies),
-    ( (modm .|. shiftMask, xK_Return),
-      do
-        dir <- liftIO dirFromClipboard
-        safeSpawn "alacritty" ["--working-directory", dir]
-    ),
-    --
-    ((modMask x, xK_F5), sendMessage (JumpToLayout "Tall")),
-    ((modMask x, xK_F6), sendMessage (JumpToLayout "Full"))
+    ((modm .|. shiftMask, xK_Return), spawnAlacritty),
+    -- Default keybindings
+    ((modMask x, xK_m), windows W.focusMaster), -- %! Move focus to the master window
+    ((modMask x, xK_Return), windows W.swapMaster), -- %! Swap the focused window and the master window
+    ((modMask x .|. shiftMask, xK_k), windows W.swapUp), -- %! Swap the focused window with the previous window
+    ((modMask x, xK_t), withFocused $ windows . W.sink) -- %! Push window back into tiling
+    -- For debug
+    -- ((modMask x, xK_F5), ...)),
+    -- ((modMask x, xK_F6), ...)),
   ]
+    ++
+    -- mod-[1..9] %! Switch to workspace N
+    -- mod-shift-[1..9] %! Move client to workspace N
+    [ ((m .|. modMask x, k), windows $ f i)
+    | (i, k) <- zip (XMonad.workspaces x) [xK_1 .. xK_9],
+      (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]
+    ]
+    ++
+    -- mod-{w,e,r} %! Switch to physical/Xinerama screens 1, 2, or 3
+    -- mod-shift-{w,e,r} %! Move client to screen 1, 2, or 3
+    [ ((m .|. modMask x, key), screenWorkspace sc >>= flip whenJust (windows . f))
+    | (key, sc) <- zip [xK_w, xK_e, xK_r] [0 ..],
+      (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
+    ]
     -- copy to workspace
     ++ [ ((m .|. modm, k), windows $ f i)
        | (i, k) <- zip (workspaces x) [xK_1 ..],
@@ -241,45 +268,9 @@ myUpKeys _conf =
     [ ((0, xK_Scroll_Lock), voxtypeStop)
     ]
 
--- Unused default key bindings
-keysToRemove :: XConfig l -> [KeyCombination]
-keysToRemove x =
-  [ (modm .|. shiftMask .|. controlMask, xK_j),
-    (modm .|. shiftMask .|. controlMask, xK_k),
-    (modm .|. shiftMask, xK_j),
-    (modm .|. shiftMask, xK_k),
-    -- quake console
-    (modMask x, xK_grave),
-    -- scratchpad numen
-    (modMask x, xK_n),
-    -- rofi is used as programs launcher
-    (modMask x .|. shiftMask, xK_p),
-    (modMask x, xK_p),
-    -- This one used for history cycle
-    (modMask x, xK_Tab),
-    (modm .|. shiftMask, xK_Tab),
-    -- These are remapped to < and >
-    (modm, xK_h),
-    (modm, xK_l),
-    -- "<" and ">" are bound to shrink/expand master area
-    (modm, xK_comma),
-    (modm, xK_period),
-    --
-    (modm .|. shiftMask, xK_Return),
-    (modMask x .|. shiftMask, xK_space),
-
-    -- next layout
-    (modMask x,               xK_space),
-    (modMask x .|. shiftMask, xK_space)
-  ]
-  where
-    modm = modMask x
-
 -- Modify default key bindings scheme
 myKeys :: XConfig Layout -> M.Map KeyCombination (X ())
-myKeys x = M.union (strippedKeys x) (M.fromList (keysToAdd x))
-  where
-    strippedKeys t = foldr M.delete (keys def t) (keysToRemove t)
+myKeys x = M.fromList (keysToAdd x)
 
 mySB :: StatusBarConfig
 mySB =
@@ -305,29 +296,30 @@ mySB =
 -- External commands
 myCommands :: [(String, X ())]
 myCommands =
-        [ ("decrease-master-size"      , sendMessage Shrink)
-        , ("increase-master-size"      , sendMessage Expand)
-        , ("decrease-master-count"     , sendMessage $ IncMasterN (-1))
-        , ("increase-master-count"     , sendMessage $ IncMasterN 1)
-        , ("focus-prev"                , windows W.focusUp)
-        , ("focus-next"                , windows W.focusDown)
-        , ("focus-master"              , windows W.focusMaster)
-        , ("swap-with-prev"            , windows W.swapUp)
-        , ("swap-with-next"            , windows W.swapDown)
-        , ("swap-with-master"          , windows W.swapMaster)
-        , ("kill-window"               , kill)
-        --
-        , ("layout-next"               , sendMessage NextLayout)
-        , ("layout-set-full"           , sendMessage (JumpToLayout "Full"))
-        , ("layout-set-tall"           , sendMessage (JumpToLayout "Tall"))
-        , ("layout-toggle-focused-maximize", sendMessage maximizeFocusedToggle)
-        ]
+  [ ("decrease-master-size", sendMessage Shrink),
+    ("increase-master-size", sendMessage Expand),
+    ("decrease-master-count", sendMessage $ IncMasterN (-1)),
+    ("increase-master-count", sendMessage $ IncMasterN 1),
+    ("focus-prev", windows W.focusUp),
+    ("focus-next", windows W.focusDown),
+    ("focus-master", windows W.focusMaster),
+    ("swap-with-prev", windows W.swapUp),
+    ("swap-with-next", windows W.swapDown),
+    ("swap-with-master", windows W.swapMaster),
+    ("kill-window", kill),
+    --
+    ("layout-next", sendMessage NextLayout),
+    ("layout-set-full", sendMessage (JumpToLayout "Full")),
+    ("layout-set-tall", sendMessage (JumpToLayout "Tall")),
+    ("layout-toggle-focused-maximize", sendMessage maximizeFocusedToggle)
+  ]
 
 myServerModeEventHook = serverModeEventHookCmd' $ return myCommands
 
 listMyServerCmds :: X ()
 listMyServerCmds = spawn ("echo '" ++ asmc ++ "' | xmessage -file -")
-    where asmc = concat $ "Available commands:" : map (\(x, _)-> "    " ++ x) myCommands
+  where
+    asmc = concat $ "Available commands:" : map (\(x, _) -> "    " ++ x) myCommands
 
 main :: IO ()
 main =
@@ -353,17 +345,17 @@ main =
           windows $ W.greedyView "work"
           configureXset,
         workspaces = myWorkspaces,
-        handleEventHook = 
+        handleEventHook =
           myServerModeEventHook <> handleEventHook desktopConfig <> Hacks.trayerAboveXmobarEventHook
       }
   where
     myLayoutHook =
-        renamed [CutWordsLeft 1] $
-          smartSpacingWithEdge 7 $
-            avoidStruts $
-              maximizeFocused $ -- M-f to temporary maximize windows
-                smartBorders -- Don't put borders on fullFloatWindows
-                  (Tall 1 (3 / 100) (1 / 2) ||| Full)
+      renamed [CutWordsLeft 1] $
+        smartSpacingWithEdge 7 $
+          avoidStruts $
+            maximizeFocused $ -- M-f to temporary maximize windows
+              smartBorders -- Don't put borders on fullFloatWindows
+                (Tall 1 (3 / 100) (1 / 2) ||| Full)
     redColor = "#Cd2626"
 
 myWorkspaces :: [String]
