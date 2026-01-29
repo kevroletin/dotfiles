@@ -25,16 +25,26 @@ def pamix [] {
   job recv
 }
 
-def toggle-transparenty [] {
+def modify-transparenty [f] {
   let config = $"($env.HOME)/.config/alacritty/alacritty.toml"
   let template = $"($config).template"
-  let opacity = if (open -r $config | str contains "opacity = 1") {
-    0.85
-  } else {
-    1
-  }
-  nu $"($env.HOME)/.xmonad/expand-template" --file $template --vars ({opacity: $opacity} | to nuon)
+  let opacity = open -r $config | parse "opacity = {x}" | first | get x | default 1.0 | into float
+  let res = do $f $opacity
+  nu $"($env.HOME)/.xmonad/expand-template" --file $template --vars ({opacity: $res} | to nuon)
 }
+
+def toggle-transparenty [] {
+  modify-transparenty { |x|
+    if ($x >= 1.0) {
+      0.85
+    } else {
+      1
+    }
+  }
+}
+
+def less-transparenty [] { modify-transparenty { |x| if ($x >= 0.95) { 1 } else { $x + 0.05 } } }
+def more-transparenty [] { modify-transparenty { |x| if ($x <= 0.5) { 0 } else { $x - 0.05 } } }
 
 let keys = {
   a: {
@@ -51,19 +61,33 @@ let keys = {
           { || toggle-transparenty }]
     }
   }
+  "i": {
+    group: increase
+    keys: {
+      t: [transparency
+          { || more-transparenty }]
+    }
+  }
+  "d": {
+    group: decrease
+    keys: {
+      t: [transparency
+          { || less-transparenty }]
+    }
+  }
 }
 
-let key_list = flatten_keys [] "" { group: "", keys: $keys }
+let key_list = flatten_keys [] "" "" { group: "", keys: $keys }
 
-def flatten_keys [res, acc, value] {
+def flatten_keys [res acc_key acc_desc value] {
   match ($value | describe -d | get type) {
-    "list" => ($res | append {key: $acc, desc: ($value | first), act: ($value | get 1)}),
+    "list" => ($res | append {key: $acc_key, desc: $"($acc_desc) ($value | first)", act: ($value | get 1)}),
     "record" => {
-      let $name = $value.group
+      let $group = $value.group
       $value.keys
       | items { |k, v| {key: $k, value: $v} }
       | reduce --fold $res { |$x, fold|
-        flatten_keys $fold $"($acc)($x.key)" $x.value
+        flatten_keys $fold $"($acc_key)($x.key)" $"($acc_desc) ($group)" $x.value
       }
     }
   }
@@ -74,9 +98,10 @@ def open_menu [] {
     -dmenu
     -window-title "Which key"
     -cycle
-    -matching prefix
+    -matching regex
     -selected-row
     -format i
+    -filter "^"
     -auto-select
   )
 }
