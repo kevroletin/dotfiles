@@ -194,6 +194,7 @@ keysToAdd x =
     ((modMask x, xK_z), do safeSpawn "xscreensaver-command" ["-lock"]),
     ((modMask x .|. shiftMask, xK_z), do spawn "sleep 1s; xset dpms force off"),
     ((modMask x, xK_space), do spawn "~/.xmonad/which-key"),
+    ((modMask x .|. shiftMask .|. controlMask, xK_space), do spawn "~/.xmonad/which-key repeat"),
     ((modMask x .|. shiftMask, xK_space), sendMessage NextLayout),
 
     -- Float and enlarge selected window

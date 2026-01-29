@@ -9,7 +9,7 @@ prepend_keymap = [
   # new commands from the plugin
 	{ on = "K", run = "plugin augment-command -- parent_arrow -1", desc = "Up parent directory" },
 	{ on = "J", run = "plugin augment-command -- parent_arrow 1", desc = "Down parent directory" },
-	{ on = ["g", "f"], run = "plugin augment-command -- first_file", desc = "Jump to the first file" },
+	{ on = [ "g", "x" ], run = "cd ~/.xmonad/", desc = "~/.xmonad" },
 
   # augment existing commands
   # https://github.com/hankertrix/augment-command.yazi

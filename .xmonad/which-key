@@ -1,7 +1,9 @@
 #!/usr/bin/env nu
 
+let last_action_file = $"($env.HOME)/.local/share/which_key/last_action.txt"
+
 def --wrapped xmonadctl [...$rest] {
-  run-external "/home/behemoth/.local/bin/xmonadctl" ...$rest
+  run-external $"($env.HOME)/.local/bin/xmonadctl" ...$rest
 }
 
 def pamix [] {
@@ -33,22 +35,22 @@ def modify-transparenty [f] {
   let config = $"($env.HOME)/.config/alacritty/alacritty.toml"
   let template = $"($config).template"
   let opacity = open -r $config | parse "opacity = {x}" | first | get x | default 1.0 | into float
-  let res = do $f $opacity
+  let res = (do $f ($opacity * 100 | into int)) / 100
   nu $"($env.HOME)/.xmonad/expand-template" --file $template --vars ({opacity: $res} | to nuon)
 }
 
 def toggle-transparenty [] {
   modify-transparenty { |x|
-    if ($x >= 1.0) {
-      0.85
+    if ($x >= 100) {
+      85
     } else {
-      1
+      100
     }
   }
 }
 
-def less-transparenty [] { modify-transparenty { |x| if ($x >= 0.95) { 1 } else { $x + 0.05 } } }
-def more-transparenty [] { modify-transparenty { |x| if ($x <= 0.5) { 0 } else { $x - 0.05 } } }
+def less-transparenty [] { modify-transparenty { |x| if ($x >= 95) { 100 } else { $x + 05 } } }
+def more-transparenty [] { modify-transparenty { |x| if ($x <= 5) { 0 } else { $x - 5 } } }
 
 let keys = {
   a: {
@@ -125,6 +127,24 @@ def interact [] {
   $key_list | get $selection
 }
 
-interact | do $in.act
+def main [] {
+  let res = interact
+
+  $last_action_file | path dirname | mkdir $in
+  $res.key | save -f $last_action_file
+
+  do $res.act
+  ignore
+}
+
+def "main repeat" [] {
+  if ($last_action_file | path exists) {
+    let last_action = open $last_action_file
+    # print ($key_list | where key == $last_action | first)
+    $key_list | where key == $last_action | first | each {
+      do $in.act
+    }
+  }
+}
 
 
