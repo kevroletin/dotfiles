@@ -366,7 +366,8 @@ main =
           -- https://hackage.haskell.org/package/xmonad-contrib-0.18.1/docs/XMonad-Actions-UpdatePointer.html
           updatePointer (0.5, 0.5) (0, 0),
         modMask = mod4Mask,
-        focusedBorderColor = redColor,
+        focusedBorderColor = "#dc322f",
+        normalBorderColor = "#839496",
         focusFollowsMouse = False,
         keys = myKeys,
         terminal = "alacritty",
@@ -386,7 +387,6 @@ main =
           (lessBorders (Combine Union Never OnlyFloat))
             (tallLayout ||| Full)
     tallLayout = renamed [CutWordsLeft 1] $ spacingWithEdge 7 (Tall 1 (3 / 100) (1 / 2))
-    redColor = "#Cd2626"
 
 myWorkspaces :: [String]
 myWorkspaces = ["web", "work", "3", "4", "5", "6", "7", "mail", "chat", "temp"]
