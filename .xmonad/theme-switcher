@@ -9,14 +9,14 @@
 let HOME = $env.HOME
 
 def set_wallpaper [style] {
-  let dir = $"($env.HOME)/Pictures/wallpapers"
-  let x = if ($style == light) {
-    $"($dir)/light.jpg"
+  let base_dir = $"($env.HOME)/Pictures/wallpapers"
+  let dir = if ($style == light) {
+    $"($base_dir)/light"
   } else {
-    $"($dir)/dark.png"
+    $"($base_dir)/dark"
   }
-  print $"feh --bg-scale ($x)"
-  feh --bg-scale $x
+  let file = ls $dir | where type == file | shuffle | first | get name
+  feh --bg-scale $file
 }
 
 def link_config [file_path, style] {

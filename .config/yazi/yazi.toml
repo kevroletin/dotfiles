@@ -21,6 +21,9 @@ play = [
 play-only-audio = [
   { run = 'alacritty -t "mpv: $@" -e mpv --no-video "$@"', desc =  "Only audio with mpv", orphan = true, for = "unix" },
 ]
+set-wallpaper = [
+  { run = 'feh --bg-fill %s', desc =  "Set wallpaper", orphan = true, for = "unix" },
+]
 
 [open]
 rules = [
@@ -29,7 +32,7 @@ rules = [
   # Text
   { mime = "text/*", use = [ "edit", "reveal" ] },
   # Image
-  { mime = "image/*", use = [ "open", "reveal" ] },
+  { mime = "image/*", use = [ "open", "set-wallpaper", "reveal" ] },
   # Media
   { mime = "{audio,video}/*", use = [ "play", "play-only-audio", "reveal" ] },
   # Archive
