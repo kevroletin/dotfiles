@@ -305,14 +305,24 @@ instance SetsAmbiguous Ambiguity where
           OnlyFloat ->
             -- THE CHANGE
             -- remove borders from floating windows if thre are no tiled windows
-            (null ms)
+            (null ms) && (not hasManyFloating)
           _ ->
             wr1 `R.supersetOf` sr
         return w1
 
+      -- It's a copy of floating which is impossible to figure out and I hope that
+      -- lazy evaluation will forgive our sins
+      floatingWindows = [ w | scr <- thisScreen, 
+                              w <- reverse . W.integrate' . W.stack . W.workspace $ scr,
+                              M.member w (W.floating wset) ]
+      hasFloating = not (null floatingWindows)
+      hasManyFloating = case floatingWindows of _x:_y:_ -> True
+                                                _x:[] -> False
+                                                [] -> False
+
       ms = filter (`elem` W.integrate' mst) $ map fst wrs
       tiled [w]
-        | Screen <- amb = [w]
+        | Screen <- amb = if hasFloating then [] else [w]
         | OnlyScreenFloat <- amb = []
         | OnlyLayoutFloat <- amb = []
         | OnlyFloat <- amb = []
@@ -321,8 +331,8 @@ instance SetsAmbiguous Ambiguity where
           let nonF = map integrate $ W.current wset : W.visible wset,
           length (concat nonF) > length wrs,
           singleton $ filter (1 ==) $ map length nonF =
-            [w]
-        | singleton screens = [w]
+            if hasFloating then [] else [w]
+        | singleton screens = if hasFloating then [] else [w]
       tiled _ = []
       integrate y = W.integrate' . W.stack $ W.workspace y
 
