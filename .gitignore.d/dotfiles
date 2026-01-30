@@ -46,7 +46,6 @@
 !/.config/ranger/rc.conf
 !/.config/ranger/rifle.conf
 !/.config/redshift.conf
-!/.config/rofi/adaptive_theme.rasi
 !/.config/rofi/config.rasi
 !/.config/rofi/dark.rasi
 !/.config/rofi/light.rasi
@@ -93,6 +92,7 @@
 !/.spacemacs.d/user-theme/README.org
 !/.tmux.conf
 !/.vimrc
+!/.xmonad/bin/xmonadctl.hs
 !/.xmonad/expand-template
 !/.xmonad/hints.org
 !/.xmonad/package.yaml
