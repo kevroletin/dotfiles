@@ -1,33 +1,6 @@
 #!/usr/bin/env nu
 
-let storage_file = $"($env.HOME)/.local/share/dotfiles/kv_storage.nuon"
-
-def store_key [key] {
-  let value = $in
-
-  let kv = if ($storage_file | path exists) {
-    open $storage_file
-  } else {
-    $storage_file | path dirname | mkdir $in
-    {}
-  }
-
-  let prev = $kv | get --optional $key
-  let new_kv = $kv | upsert $key $value 
-
-  $new_kv | save -f $storage_file
-  $prev
-}
-
-def load_key [key] {
-  let kv = if ($storage_file | path exists) {
-    open $storage_file
-  } else {
-    $storage_file | path dirname | mkdir $in
-    {}
-  }
-  $kv | get $key
-}
+use nu *
 
 def --wrapped xmonadctl [...$rest] {
   run-external $"($env.HOME)/.local/bin/xmonadctl" ...$rest
@@ -173,7 +146,7 @@ def main [] {
 }
 
 def "main repeat" [] {
-  let last_action = load_key "which-key.last-action"
+  let last_action = "which-key.last-action" | load_key
   if ($last_action | is-not-empty) {
     $key_list | where key == $last_action | first | each {
       do $in.act

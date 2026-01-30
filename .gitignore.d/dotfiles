@@ -9,6 +9,9 @@
 !/bin/org-push
 !/bin/run-aider
 !/bin/tunnel-up
+!/.config/alacritty/alacritty.toml.template
+!/.config/alacritty/solarized_dark.toml
+!/.config/alacritty/solarized_light.toml
 !/.config/Code/User/keybindings.json
 !/.config/Code/User/settings.json
 !/.config/dotfiles/install.nu
@@ -95,8 +98,10 @@
 !/.xmonad/bin/xmonadctl.hs
 !/.xmonad/expand-template
 !/.xmonad/hints.org
+!/.xmonad/nu/mod.nu
 !/.xmonad/package.yaml
 !/.xmonad/setup-proxy
+!/.xmonad/src/MyNoBorders.hs
 !/.xmonad/stack.yaml
 !/.xmonad/start-trayer
 !/.xmonad/start-xmonad
