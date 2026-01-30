@@ -6,7 +6,7 @@
 # * dunst - notifications
 # * alacritty - terminal
 
-let HOME = $env.HOME
+use nu store_key
 
 def set_wallpaper [style] {
   let base_dir = $"($env.HOME)/Pictures/wallpapers"
@@ -20,13 +20,13 @@ def set_wallpaper [style] {
 }
 
 def link_config [file_path, style] {
-  let x = $"($HOME)/($file_path)"
+  let x = $"($env.HOME)/($file_path)"
   print $"($x).($style)" $x
   ln -f --symbolic --relative $"($x).($style)" $x
 }
 
 def set_rofi_theme [style] {
-  $'@theme "($style)"' | save -f $"($HOME)/.config/rofi/adaptive_theme.rasi"
+  $'@theme "($style)"' | save -f $"($env.HOME)/.config/rofi/adaptive_theme.rasi"
 }
 
 # trayer, xmobar, dunst
@@ -43,7 +43,7 @@ def set_bunch_of_themes [style] {
 }
 
 def set_alacritty_theme [style] {
-  let x = $"($HOME)/.config/alacritty"
+  let x = $"($env.HOME)/.config/alacritty"
   let template = $'general.import = [ "solarized_($style).toml" ]'
   $template | save --force $"($x)/adaptive_theme.toml"
   touch $"($x)/alacritty.toml"
@@ -57,6 +57,8 @@ def set_theme [style] {
   set_rofi_theme $style
 
   set_wallpaper $style
+
+  $style | store_key "theme-style"
 }
 
 def system_theme [] {
@@ -83,6 +85,11 @@ def "main monitor" [] {
           restart_deamons
           notify-send 'Desktop theme update'
       }
+}
+
+
+def "main expand-templates" [new_style] {
+  set_theme $new_style
 }
 
 def "main set" [new_style] {
