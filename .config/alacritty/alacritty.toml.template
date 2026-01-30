@@ -2,7 +2,7 @@
 
 [general]
 
-import = [ "adaptive-theme.toml" ]
+import = [ "adaptive_theme.toml" ]
 live_config_reload = true
 
 [window]
