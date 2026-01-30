@@ -106,7 +106,7 @@ let keys = {
   "l": {
     group: layout
     keys: {
-      n: [next { || xmonadctl "layout-next" }]
+      l: [next { || xmonadctl "layout-next" }]
       m: [maximized { || xmonadctl "layout-set-full" }]
       t: [tall { || xmonadctl "layout-set-tall" }]
       f: ["maximize focused" { || xmonadctl "layout-toggle-focused-maximize" }]

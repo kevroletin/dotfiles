@@ -238,7 +238,7 @@ keysToAdd x =
     -- cycle layouts
     ((modMask x .|. shiftMask, xK_space), sendMessage NextLayout),
     -- Float and enlarge selected window
-    ((modMask x, xK_f), sendMessage maximizeFocusedToggle),
+    ((modMask x, xK_f), withFocused (sendMessage . maximizeFocusedRestore)),
     -- resizing the master/slave ratio
     ((modm, xK_comma), sendMessage Shrink),
     ((modm, xK_period), sendMessage Expand),
@@ -304,10 +304,8 @@ myKeys x = M.fromList (keysToAdd x)
 mySB :: StatusBarConfig
 mySB =
   res
-    { sbStartupHook = do
-        spawn "systemctl --user start xmobar.service",
-      sbCleanupHook = do
-        spawn "systemctl --user stop xmobar.service"
+    { sbStartupHook = spawn "systemctl --user restart xmobar.service",
+      sbCleanupHook = pure () -- spawn "systemctl --user stop xmobar.service"
     }
   where
     res = statusBarProp "xmobar ~/.xmobarrc" (copiesPP (wrap "✦" "") myPP)
@@ -340,7 +338,7 @@ myCommands =
     ("layout-next", sendMessage NextLayout),
     ("layout-set-full", sendMessage (JumpToLayout "Full")),
     ("layout-set-tall", sendMessage (JumpToLayout "Tall")),
-    ("layout-toggle-focused-maximize", sendMessage maximizeFocusedToggle),
+    ("layout-toggle-focused-maximize", withFocused (sendMessage . maximizeFocusedRestore)),
     ("layout-toggle-float", toggleFloat)
   ]
 
@@ -358,7 +356,7 @@ main =
     . docks
     . withEasySB mySB defToggleStrutsKey
     . (\c -> useUpKeys (def {grabKeys = True, upKeys = myUpKeys c}) c)
-    . ewmhFullscreen
+    . ewmhFullscreen -- maximize windows which enabled full screen by themselves
     . ewmh
     $ desktopConfig
       { manageHook = manageDocks <+> manageHook desktopConfig <+> namedScratchpadManageHook scratchpads <+> myManageHook,
@@ -381,12 +379,13 @@ main =
       }
   where
     myLayoutHook =
-      renamed [CutWordsLeft 1] $
-        smartSpacingWithEdge 7 $
-          avoidStruts $
-            maximizeFocused $ -- M-f to temporary maximize windows
-              smartBorders -- Don't put borders on fullFloatWindows
-                (Tall 1 (3 / 100) (1 / 2) ||| Full)
+      avoidStruts $
+        maximizeFocused $ -- M-f to temporary maximize windows
+          smartBorders
+            -- lessBorders Never
+            -- lessBorders OnlyFloat
+            (tallLayout ||| Full)
+    tallLayout = renamed [CutWordsLeft 1] $ spacingWithEdge 7 (Tall 1 (3 / 100) (1 / 2))
     redColor = "#Cd2626"
 
 myWorkspaces :: [String]
@@ -396,44 +395,48 @@ myManageHook :: ManageHook
 myManageHook =
   composeAll . concat $
     [ [className =? b --> doF (W.shift "web") | b <- myClassWebShifts],
-      [resource =? c --> doF (W.shift "mail") | c <- myClassMailShifts],
       [resource =? c --> doF (W.shift "chat") | c <- myClassChatShifts],
       [(appName =? "Alert" <&&> className =? "firefox") --> doFloat],
       [className =? "xmonad-center-float" --> doCenterFloat],
       [className =? i --> doFloat | i <- myClassFloats],
-      [(className =? "TeamViewer" <&&> stringProperty "WM_NAME" =? "") --> doIgnore],
       [isFullscreen --> (doF W.focusDown <+> doFullFloat)],
-      [(className =? "ignore-window-manager") --> doIgnore]
+      [(className =? "TeamViewer" <&&> stringProperty "WM_NAME" =? "") --> doIgnore],
+      [(className =? "xmonad-ignore") --> doIgnore]
     ]
   where
     myClassWebShifts = ["Navigator", "Firefox"]
-    myClassMailShifts = ["Mail", "Thunderbird"]
     myClassChatShifts = ["Pidgin", "skype", "slack", "Telegram"]
-    myClassFloats = ["Gimp", "TeamViewer", "gtk-recordmydesktop", "Gtk-recordmydesktop", "xmonad-float"]
+    myClassFloats = ["Anki", "Gimp", "TeamViewer", "gtk-recordmydesktop", "Gtk-recordmydesktop", "xmonad-float"]
 
-data MaximizeFocused a = MaximizeFocused Dimension Bool deriving (Read, Show)
+-- Based on XMonad.Layout.Maximize
+-- This version doesn't keep maximized window on focuss loss, so moving away from the
+-- maximized window or openning a new one would sink maximized window to it's original
+-- position
+data MaximizeFocused a = MaximizeFocused Dimension (Maybe Window) deriving (Read, Show)
 
 maximizeFocused :: l Window -> ModifiedLayout MaximizeFocused l Window
-maximizeFocused = ModifiedLayout $ MaximizeFocused 25 False
+maximizeFocused = ModifiedLayout $ MaximizeFocused 25 Nothing
 
+-- | Like 'maximizeFocused', but allows you to specify the amount of padding
+-- placed around the maximizeFocusedd window.
 _maximizeFocusedWithPadding :: Dimension -> l Window -> ModifiedLayout MaximizeFocused l Window
-_maximizeFocusedWithPadding padding = ModifiedLayout $ MaximizeFocused padding False
+_maximizeFocusedWithPadding padding = ModifiedLayout $ MaximizeFocused padding Nothing
 
-newtype MaximizeFocusedToggle = MaximizeFocusedToggle () deriving (Eq)
+newtype MaximizeFocusedRestore = MaximizeFocusedRestore Window deriving (Eq)
 
-instance Message MaximizeFocusedToggle
+instance Message MaximizeFocusedRestore
 
-maximizeFocusedToggle :: MaximizeFocusedToggle
-maximizeFocusedToggle = MaximizeFocusedToggle ()
+maximizeFocusedRestore :: Window -> MaximizeFocusedRestore
+maximizeFocusedRestore = MaximizeFocusedRestore
 
 instance LayoutModifier MaximizeFocused Window where
-  modifierDescription (MaximizeFocused _ on) = if on then "F" else ""
-  pureModifier (MaximizeFocused padding on) rect (Just (S.Stack focused _ _)) wrs =
-    if on
+  modifierDescription (MaximizeFocused _ _) = "MaximizeFocused"
+  pureModifier (MaximizeFocused padding (Just target)) rect (Just (S.Stack focused _ _)) wrs =
+    if focused == target
       then (maxed ++ rest, Nothing)
-      else (wrs, Nothing)
+      else (wrs, Just (MaximizeFocused padding Nothing))
     where
-      (toMax, rest) = partition (\(w, _) -> w == focused) wrs
+      (toMax, rest) = partition (\(w, _) -> w == target) wrs
       maxed = map (\(w, _) -> (w, maxRect)) toMax
       maxRect =
         Rectangle
@@ -443,7 +446,11 @@ instance LayoutModifier MaximizeFocused Window where
           (rect_height rect - padding * 2)
   pureModifier _ _ _ wrs = (wrs, Nothing)
 
-  pureMess (MaximizeFocused padding on) m =
-    case fromMessage m of
-      Just (MaximizeFocusedToggle ()) -> Just (MaximizeFocused padding (not on))
-      _ -> Nothing
+  pureMess (MaximizeFocused padding mw) m = case fromMessage m of
+    Just (MaximizeFocusedRestore w) -> case mw of
+      Just w' ->
+        if w == w'
+          then Just $ MaximizeFocused padding Nothing -- restore window
+          else Just $ MaximizeFocused padding $ Just w -- maximizeFocused different window
+      Nothing -> Just $ MaximizeFocused padding $ Just w -- maximizeFocused window
+    _ -> Nothing

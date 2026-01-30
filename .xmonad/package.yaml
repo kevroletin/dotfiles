@@ -24,7 +24,7 @@ ghc-options:
 - -Wredundant-constraints
 
 executables:
-  test-exe:
+  xmonad:
     main:                xmonad.hs
     source-dirs:         .
     ghc-options:

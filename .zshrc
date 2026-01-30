@@ -25,7 +25,7 @@ zstyle ':prezto:load' pmodule \
 
 zstyle ':prezto:module:editor' key-bindings 'emacs'
 zstyle ':prezto:module:git:log:context' format 'oneline'
-zstyle ':prezto:module:prompt' theme 'cloud' '$'
+zstyle ':prezto:module:prompt' theme 'cloud' ' $'
 zstyle ':prezto:module:syntax-highlighting' highlighters \
   'main' \
   'brackets' \
