@@ -5,6 +5,7 @@
 
 import Data.List (isPrefixOf)
 import qualified Data.Map as M
+import Data.Semigroup (All)
 import qualified Data.Text as T
 import Graphics.X11.ExtraTypes.XF86
 import System.Clipboard (getClipboardString)
@@ -25,7 +26,6 @@ import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.ServerMode
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
-import XMonad.Layout.LayoutCombinators
 import XMonad.Layout.LayoutModifier
 import XMonad.Layout.NoBorders
 import XMonad.Layout.Renamed
@@ -150,16 +150,44 @@ voxtypeStop = do
   -- resume numen
   safeSpawn "/bin/bash" ["-c", "echo load ~/.config/numen/phrases/*.phrases | numenc"]
 
--- sendClipboardToTelegram = spawn "~/bin/telegram-send"
+centreRect :: W.RationalRect
+centreRect = W.RationalRect 0.2 0.05 0.6 0.9
 
--- * disable repeating (bouncing) ScrollLock key
+-- If the window is floating then (f), if tiled then (n)
+floatOrNot :: X () -> X () -> X ()
+floatOrNot f n = withFocused $ \windowId -> do
+  floats <- gets (W.floating . windowset)
+  if windowId `M.member` floats -- if the current window is floating...
+    then f
+    else n
 
--- * enable russian layout
+-- Centre and float a window (retain size)
+_centreFloat :: Window -> X ()
+_centreFloat win = do
+  (_, W.RationalRect _x _y w h) <- floatLocation win
+  windows $ W.float win (W.RationalRect ((1 - w) / 2) ((1 - h) / 2) w h)
+  return ()
 
---
+-- Float a window in the centre
+centreFloat' :: Window -> X ()
+centreFloat' w = windows $ W.float w centreRect
+
+-- Make a window my 'standard size' (half of the screen) keeping the centre of the window fixed
+_standardSize :: Window -> X ()
+_standardSize win = do
+  (_, W.RationalRect x y _w _h) <- floatLocation win
+  windows $ W.float win (W.RationalRect x y 0.5 0.5)
+  return ()
+
+-- Float and centre a tiled window, sink a floating window
+toggleFloat :: X ()
+toggleFloat = floatOrNot (withFocused $ windows . W.sink) (withFocused centreFloat')
+
 -- Configuring X setting turned out to be complicated due to startup order. Some daemon overrides settings during user startup
 -- and playing with systemctl startup sequence didn't help. As a workaround, this script has 5sec sleep and we run it here
 -- asynchronously
+-- + disable repeating (bouncing) ScrollLock key
+-- + enable russian layout
 configureXset :: X ()
 configureXset = do spawnOnce "~/bin/configure-xset &"
 
@@ -233,7 +261,8 @@ keysToAdd x =
     ((modMask x, xK_m), windows W.focusMaster), -- %! Move focus to the master window
     ((modMask x, xK_Return), windows W.swapMaster), -- %! Swap the focused window and the master window
     ((modMask x .|. shiftMask, xK_k), windows W.swapUp), -- %! Swap the focused window with the previous window
-    ((modMask x, xK_t), withFocused $ windows . W.sink) -- %! Push window back into tiling
+    -- ((modMask x, xK_t), withFocused $ windows . W.sink) -- %! Push window back into tiling
+    ((modMask x, xK_t), toggleFloat)
     -- For debug
     -- ((modMask x, xK_F5), ...)),
     -- ((modMask x, xK_F6), ...)),
@@ -311,13 +340,15 @@ myCommands =
     ("layout-next", sendMessage NextLayout),
     ("layout-set-full", sendMessage (JumpToLayout "Full")),
     ("layout-set-tall", sendMessage (JumpToLayout "Tall")),
-    ("layout-toggle-focused-maximize", sendMessage maximizeFocusedToggle)
+    ("layout-toggle-focused-maximize", sendMessage maximizeFocusedToggle),
+    ("layout-toggle-float", toggleFloat)
   ]
 
+myServerModeEventHook :: Event -> X All
 myServerModeEventHook = serverModeEventHookCmd' $ return myCommands
 
-listMyServerCmds :: X ()
-listMyServerCmds = spawn ("echo '" ++ asmc ++ "' | xmessage -file -")
+_listMyServerCmds :: X ()
+_listMyServerCmds = spawn ("echo '" ++ asmc ++ "' | xmessage -file -")
   where
     asmc = concat $ "Available commands:" : map (\(x, _) -> "    " ++ x) myCommands
 
