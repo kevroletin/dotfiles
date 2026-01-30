@@ -3,11 +3,12 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-import Data.List (isPrefixOf)
+import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Semigroup (All)
 import qualified Data.Text as T
 import Graphics.X11.ExtraTypes.XF86
+import MyNoBorders -- slightly modified version which leaves borders arond floating windows most of the time
 import System.Clipboard (getClipboardString)
 import System.Directory (doesDirectoryExist, getHomeDirectory)
 import System.Exit
@@ -27,7 +28,6 @@ import XMonad.Hooks.ServerMode
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Layout.LayoutModifier
-import XMonad.Layout.NoBorders
 import XMonad.Layout.Renamed
 import XMonad.Layout.Spacing
 import XMonad.Prelude (partition)
@@ -55,7 +55,7 @@ dirFromClipboard =
         False -> getHomeDirectory
   where
     expandTilda path
-      | "~/" `isPrefixOf` path = do
+      | "~/" `L.isPrefixOf` path = do
           home <- getHomeDirectory
           pure (home </> drop 2 path)
       | "~" == path = getHomeDirectory
@@ -381,9 +381,9 @@ main =
     myLayoutHook =
       avoidStruts $
         maximizeFocused $ -- M-f to temporary maximize windows
-          smartBorders
-            -- lessBorders Never
-            -- lessBorders OnlyFloat
+        -- smartBorders
+        --  (lessBorders MyAmbiguity)
+          (lessBorders (Combine Union Never OnlyFloat))
             (tallLayout ||| Full)
     tallLayout = renamed [CutWordsLeft 1] $ spacingWithEdge 7 (Tall 1 (3 / 100) (1 / 2))
     redColor = "#Cd2626"

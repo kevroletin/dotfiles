@@ -89,21 +89,21 @@ let keys = {
       v: [volume { || pamix }]
     }
   }
-  "d": {
+  d: {
     group: decrease
     keys: {
       t: [transparency { || less-transparenty }]
       b: [brightness { || less-brightness }]
     }
   }
-  "i": {
+  i: {
     group: increase
     keys: {
       t: [transparency { || more-transparenty }]
       b: [brightness { || more-brightness }]
     }
   }
-  "l": {
+  l: {
     group: layout
     keys: {
       l: [next { || xmonadctl "layout-next" }]
@@ -111,6 +111,13 @@ let keys = {
       t: [tall { || xmonadctl "layout-set-tall" }]
       f: ["maximize focused" { || xmonadctl "layout-toggle-focused-maximize" }]
       x: ["toggle float (eXclude from tiling)" { || xmonadctl "layout-toggle-float" }]
+    }
+  }
+  s: {
+    group: style
+    keys: {
+      d: [dark { || nu $"($env.HOME)/.xmonad/theme-switcher" set dark }]
+      l: [light { || nu $"($env.HOME)/.xmonad/theme-switcher" set light }]
     }
   }
   t: {
