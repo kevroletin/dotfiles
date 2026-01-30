@@ -44,8 +44,8 @@ def set_bunch_of_themes [style] {
 
 def set_alacritty_theme [style] {
   let x = $"($HOME)/.config/alacritty"
-  let template = $'general.import = [ "($x)/themes_git/themes/solarized_($style).toml" ]'
-  $template | save --force $"($x)/theme.toml"
+  let template = $'general.import = [ "solarized_($style).toml" ]'
+  $template | save --force $"($x)/adaptive_theme.toml"
 }
 
 def set_theme [style] {

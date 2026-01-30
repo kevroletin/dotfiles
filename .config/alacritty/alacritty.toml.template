@@ -1,0 +1,52 @@
+# https://alacritty.org/config-alacritty.html
+
+[general]
+
+import = [ "adaptive-theme.toml" ]
+live_config_reload = true
+
+[window]
+
+padding = { x = 2, y = 0 }
+dynamic_padding = true
+dynamic_title = true
+opacity = ($opacity)
+
+[colors]
+transparent_background_colors = true
+
+[font]
+
+size = 13.5
+
+normal = {
+  family = "UbuntuMono Nerd Font Propo"
+}
+
+[selection]
+
+save_to_clipboard = true
+
+[keyboard]
+
+bindings = [
+  { key = "Space" , mods = "Control|Shift" , action = "None" }
+, { key = "Space" , mods = "Control" , action = "ToggleViMode" }
+
+, { key = "Return" , mode = "Vi|~Search" , action = "Copy" }
+, { key = "Return" , mode = "Vi|~Search" , action = "ClearSelection" }
+, { key = "Return" , mode = "Vi|~Search" , action = "ToggleViMode" }
+
+# Copy all visible text
+# minus one line for vim's status bar, so that "xo | vim -" gives a nice
+# view of the captured terminal output with the latest line at the bottom
+, { key = "Space" , mods = "Control|Shift" , action = "ToggleViMode" }
+, { key = "Space" , mods = "Control|Shift" , action = "ScrollPageUp" }
+, { key = "Space" , mods = "Control|Shift" , action = "Down" }
+, { key = "Space" , mods = "Control|Shift" , action = "Down" }
+, { key = "Space" , mods = "Control|Shift" , action = "ToggleLineSelection" }
+, { key = "Space" , mods = "Control|Shift" , action = "ScrollToBottom" }
+, { key = "Space" , mods = "Control|Shift" , action = "Copy" }
+, { key = "Space" , mods = "Control|Shift" , action = "ClearSelection" }
+, { key = "Space" , mods = "Control|Shift" , action = "ToggleViMode" }
+]
