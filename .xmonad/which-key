@@ -62,6 +62,12 @@ let keys = {
       v: [volume { || pamix }]
     }
   }
+  c: {
+    group: connect
+    keys: {
+      v: [wifi { || nmcli con up id "Xiaomi 15" }]
+    }
+  }
   d: {
     group: decrease
     keys: {
@@ -80,8 +86,9 @@ let keys = {
     group: layout
     keys: {
       l: [next { || xmonadctl "layout-next" }]
-      m: [maximized { || xmonadctl "layout-set-full" }]
-      t: [tall { || xmonadctl "layout-set-tall" }]
+      m: [maximized with gaps { || xmonadctl "layout-set-sfull" }]
+      M: [Maximized { || xmonadctl "layout-set-full" }]
+      t: [tall { || xmonadctl "layout-set-stall" }]
       f: ["maximize focused" { || xmonadctl "layout-toggle-focused-maximize" }]
       x: ["toggle float (eXclude from tiling)" { || xmonadctl "layout-toggle-float" }]
     }
