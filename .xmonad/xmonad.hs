@@ -243,7 +243,14 @@ keysToAdd x =
   , ((modMask x, xK_z), do safeSpawn "xscreensaver-command" ["-lock"])
   , ((modMask x .|. shiftMask, xK_z), do spawn "sleep 1s; xset dpms force off")
   , -- leader key
-    ((modMask x, xK_space), do spawn "~/.xmonad/which-key")
+    -- ((modMask x, xK_space), do spawn "~/.xmonad/which-key")
+
+    ( (modMask x, xK_space)
+    , do
+        -- scientifically unproved attempt to eliminate potential slowdonw of starting which-key script
+        -- which might become slower over time
+        spawn "rofi -input ~/.xmonad/which-key.list.txt -drun-use-desktop-cache -dmenu -window-title 'Which key' -cycle -matching regex -selected-row -filter '^' -auto-select | nu --stdin ~/.xmonad/which-key continue"
+    )
   , ((modMask x .|. shiftMask .|. controlMask, xK_space), do spawn "~/.xmonad/which-key repeat")
   , -- cycle layouts
     ((modMask x .|. shiftMask, xK_space), toggleLayout)
@@ -261,7 +268,7 @@ keysToAdd x =
   , -- See Graphics.X11.ExtraTypes.XF86
     ((0, xF86XK_AudioLowerVolume), spawn "~/.xmonad/knob_action -")
   , ((0, xF86XK_AudioRaiseVolume), spawn "~/.xmonad/knob_action +")
-  , ((0, xF86XK_AudioMute), spawn "~/.xmonad/toggle-theme")
+  , ((0, xF86XK_AudioMute), spawn "~/.xmonad/knob_action '!'")
   , ((0, xK_Scroll_Lock), voxtypeStart) -- see myUpKeys for the stop action
   -- Pin(unpin) window to all workspaces
   , ((modm .|. shiftMask, xK_a), windows copyToAll)

@@ -107,14 +107,21 @@ def "main set" [new_style] {
 
 def "main set-by-time" [] {
   let h = date now | format date "%H" | into int
-  if (6 <= $h and $h <= 18) {
-      set_theme 'light'
-      gsettings set org.gnome.desktop.interface color-scheme 'prefer-light'
+  let style = if (6 <= $h and $h <= 18) {
+    "light"
   } else {
-      set_theme 'dark'
-      gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+     "dark"
   }
+  set_theme $style
+  gsettings set org.gnome.desktop.interface color-scheme $"prefer-($style)"
+}
+
+def "main toggle" [] {
+  let style = if ((system_theme) == "light") { "dark" } else { "light" }
+  set_theme $style
+  gsettings set org.gnome.desktop.interface color-scheme $"prefer-($style)"
 }
 
 def main [] {
+  system_theme
 }

@@ -1,6 +1,7 @@
-#!/usr/bin/env nu
+#!/usr/bin/env -S nu --stdin
 
 use nu *
+use std/log *
 
 def --wrapped xmonadctl [...$rest] {
   run-external $"($env.HOME)/.local/bin/xmonadctl" ...$rest
@@ -55,11 +56,17 @@ def more-transparenty [] { modify-transparenty { |x| if ($x <= 5) { 0 } else { $
 def less-brightness [] { run-external $"($env.HOME)/bin/adjust-brightness" "-" }
 def more-brightness [] { run-external $"($env.HOME)/bin/adjust-brightness" "+" }
 
+def knob_mode [mode] { nu $"($env.HOME)/.xmonad/knob_action" set-mode $mode }
+
 let keys = {
   a: {
     group: adjust
     keys: {
-      v: [volume { || pamix }]
+      V: ["volume (pamix)" { || pamix }]
+      v: [volume { || knob_mode "volume" }]
+      t: [transparency { || knob_mode "transparency" }]
+      g: [gaps { || knob_mode "gaps" }]
+      b: [brightness { || knob_mode "brightness" }]
     }
   }
   c: {
@@ -112,6 +119,7 @@ let keys = {
 }
 
 let key_list = flatten_keys [] "" "" { group: "", keys: $keys }
+let key_txt_lines = $key_list | each { $"($in.key)\t($in.desc)" }
 
 def flatten_keys [res acc_key acc_desc value] {
   match ($value | describe -d | get type) {
@@ -128,7 +136,8 @@ def flatten_keys [res acc_key acc_desc value] {
 }
 
 def open_menu [] {
-  each { $"($in.key)\t($in.desc)" } | to text | (/usr/bin/rofi
+  (/usr/bin/rofi
+    -drun-use-desktop-cache
     -dmenu
     -window-title "Which key"
     -cycle
@@ -141,7 +150,7 @@ def open_menu [] {
 }
 
 def interact [] {
-  let selection = $key_list | open_menu | into int
+  let selection = $key_txt_lines | to text | open_menu | into int
   $key_list | get $selection
 }
 
@@ -161,6 +170,22 @@ def "main repeat" [] {
       do $in.act
     }
   }
+}
+
+def "main list" [] {
+  $key_txt_lines | to text
+}
+
+def "main continue" [] {
+  let inp_key = $in | parse "{keys}\t{_}" | get keys | first
+  info $"($inp_key)"
+  if ($inp_key | is-not-empty) {
+    $key_list | where key == $inp_key | first | each {
+      $in.key | store_key "which-key.last-action"
+      do $in.act
+    }
+  }
+  $key_txt_lines | to text | save -f $"($env.HOME)/.xmonad/which-key.list.txt"
 }
 
 

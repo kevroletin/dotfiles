@@ -1,6 +1,7 @@
 ### TODO
 
-symlinks
+lG lg to set gaps
+window list in status bar
 
 ### How it works
 

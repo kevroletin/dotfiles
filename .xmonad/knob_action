@@ -5,10 +5,9 @@ use std/assert *
 
 def act_volume [act] {
   match ($act) {
-    "-" => {
-    },
-    "+" => {
-    }
+    "+" => (^pactl set-sink-volume @DEFAULT_SINK@ +10%),
+    "-" => (^pactl set-sink-volume @DEFAULT_SINK@ -10%)
+    "!" => (^pactl set-sink-volume @DEFAULT_SINK@ 0)
   }
 }
 
@@ -43,6 +42,7 @@ def act_brightness [act new_value?] {
   match ($act) {
     "+" => (nu "~/bin/adjust-brightness" +),
     "-" => (nu "~/bin/adjust-brightness" -),
+    "!" => (nu "~/.xmonad/theme-switcher" toggle),
   }
 }
 
