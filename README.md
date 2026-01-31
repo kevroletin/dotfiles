@@ -1,9 +1,27 @@
+### Desktop features
+
+This config is tuned to a single laptop screen. If features simple layouts with several
+options to enlarge/maximize windows. There are also options to toggle a status bar
+and/or gaps between windows.
+
+For decorations we use picom to draw small shadows, round corners and optionally
+make alacritty transparent. Xmonad layouts are tweaked so that xmonad doesn't draw
+focus border when there is only a single window and maximized windows doesn't have
+round borders.
+
+Switching between light and dark themes sets background and adjust configs of
+Dunst (notifications), xmonar (status bar), trayer (system tray), alacritty,
+rofi (app launcher menu).
+
+Leader-style keys (aka which-key) help to organize numerous options into structured
+discoverable keybindings. As cherry on top, a physical volume control knob is hooked
+to interactively adjust different options, such as transparency or gaps.
+
 ### TODO
 
-lG lg to set gaps
-window list in status bar
++ window list in status bar
 
-### How it works
+### Installation (how)
 
 The main problem of installing/updating dotfiles is that some files might
 already exist. The installation script prevents unexpected losses like this:
@@ -23,7 +41,7 @@ Conflict resolution:
 2. Just copy new files and files without conflicts.
 3. Run a difftool to merge existing files
 
-### Installation
+### Installation (what)
 
 Configure github access
 
