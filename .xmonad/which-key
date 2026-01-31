@@ -71,15 +71,17 @@ let keys = {
   d: {
     group: decrease
     keys: {
-      t: [transparency { || less-transparenty }]
       b: [brightness { || less-brightness }]
+      g: [gaps { || xmonadctl layout-spacing-inc }]
+      t: [transparency { || less-transparenty }]
     }
   }
   i: {
     group: increase
     keys: {
-      t: [transparency { || more-transparenty }]
       b: [brightness { || more-brightness }]
+      g: [gaps { || xmonadctl layout-spacing-inc }]
+      t: [transparency { || more-transparenty }]
     }
   }
   l: {

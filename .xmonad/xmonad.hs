@@ -194,6 +194,13 @@ toggleFloat = floatOrNot (withFocused $ windows . W.sink) (withFocused centreFlo
 configureXset :: X ()
 configureXset = do spawnOnce "~/bin/configure-xset &"
 
+toggleLayout :: X ()
+toggleLayout = do
+  wset <- gets windowset
+  let desc = description . W.layout . W.workspace . W.current $ wset
+  let nextLayout = if desc == "SFull" then "STall" else "SFull"
+  sendMessage (JumpToLayout nextLayout)
+
 -- mod1Mask - alt
 -- mod4Mask - win
 -- https://xmonad.github.io/xmonad-docs/xmonad/src/XMonad.Config.html
@@ -239,7 +246,7 @@ keysToAdd x =
     ((modMask x, xK_space), do spawn "~/.xmonad/which-key")
   , ((modMask x .|. shiftMask .|. controlMask, xK_space), do spawn "~/.xmonad/which-key repeat")
   , -- cycle layouts
-    ((modMask x .|. shiftMask, xK_space), sendMessage NextLayout)
+    ((modMask x .|. shiftMask, xK_space), toggleLayout)
   , -- Float and enlarge selected window
     ((modMask x, xK_f), withFocused (sendMessage . maximizeFocusedRestore))
   , -- resizing the master/slave ratio
@@ -266,9 +273,6 @@ keysToAdd x =
   , ((modMask x .|. shiftMask, xK_k), windows W.swapUp) -- %! Swap the focused window with the previous window
   -- ((modMask x, xK_t), withFocused $ windows . W.sink) -- %! Push window back into tiling
   , ((modMask x, xK_t), toggleFloat)
-  -- For debug
-  -- ((modMask x, xK_F5), ...)),
-  -- ((modMask x, xK_F6), ...)),
   ]
     ++
     -- mod-[1..9] %! Switch to workspace N
@@ -351,13 +355,15 @@ myCommands =
   , ("swap-with-master", windows W.swapMaster)
   , ("kill-window", kill)
   , --
-    ("layout-next", sendMessage NextLayout)
+    ("layout-next", toggleLayout)
   , ("layout-set-full", sendMessage (JumpToLayout "Full"))
-  , ("layout-set-tall", sendMessage (JumpToLayout "Tall"))
   , ("layout-set-sfull", sendMessage (JumpToLayout "SFull"))
   , ("layout-set-stall", sendMessage (JumpToLayout "STall"))
   , ("layout-toggle-focused-maximize", withFocused (sendMessage . maximizeFocusedRestore))
   , ("layout-toggle-float", toggleFloat)
+  , --
+    ("layout-spacing-inc", incScreenWindowSpacing 5)
+  , ("layout-spacing-dec", decScreenWindowSpacing 5)
   ]
 
 myServerModeEventHook :: Event -> X All
