@@ -259,8 +259,8 @@ keysToAdd x =
   , ((modm, xK_grave), quakeAct)
   , ((modm .|. shiftMask, xK_n), namedScratchpadAction scratchpads "numen")
   , -- See Graphics.X11.ExtraTypes.XF86
-    ((0, xF86XK_AudioLowerVolume), spawn "~/bin/adjust-brightness -")
-  , ((0, xF86XK_AudioRaiseVolume), spawn "~/bin/adjust-brightness +")
+    ((0, xF86XK_AudioLowerVolume), spawn "~/.xmonad/knob_action -")
+  , ((0, xF86XK_AudioRaiseVolume), spawn "~/.xmonad/knob_action +")
   , ((0, xF86XK_AudioMute), spawn "~/.xmonad/toggle-theme")
   , ((0, xK_Scroll_Lock), voxtypeStart) -- see myUpKeys for the stop action
   -- Pin(unpin) window to all workspaces
@@ -362,8 +362,8 @@ myCommands =
   , ("layout-toggle-focused-maximize", withFocused (sendMessage . maximizeFocusedRestore))
   , ("layout-toggle-float", toggleFloat)
   , --
-    ("layout-spacing-inc", incScreenWindowSpacing 5)
-  , ("layout-spacing-dec", decScreenWindowSpacing 5)
+    ("layout-spacing-inc", incScreenWindowSpacing 4)
+  , ("layout-spacing-dec", decScreenWindowSpacing 4)
   ]
 
 myServerModeEventHook :: Event -> X All
@@ -403,7 +403,7 @@ main =
           myServerModeEventHook <> handleEventHook desktopConfig <> Hacks.trayerAboveXmobarEventHook
       }
  where
-  withSpacing name x = named name (spacingWithEdge 7 x)
+  withSpacing name x = named name (spacingWithEdge 8 x)
   tallLayout = withSpacing "STall" (Tall 1 (3 / 100) (1 / 2))
   myLayoutHook =
     avoidStruts $

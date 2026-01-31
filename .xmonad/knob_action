@@ -1,0 +1,90 @@
+#!/usr/bin/env nu
+
+use nu/ *
+use std/assert *
+
+def act_volume [act] {
+  match ($act) {
+    "-" => {
+    },
+    "+" => {
+    }
+  }
+}
+
+# TODO: merge with which-key
+def modify-transparenty [f] {
+  let config = $"($env.HOME)/.config/alacritty/alacritty.toml"
+  let template = $"($config).template"
+  let opacity = open -r $config | parse "opacity = {x}" | first | get x | default 1.0 | into float
+  let res = (do $f ($opacity * 100 | into int)) / 100
+  nu $"($env.HOME)/.xmonad/expand-template" --file $template --vars ({opacity: $res} | to nuon)
+}
+
+def less-transparenty [] { modify-transparenty { |x| if ($x >= 95) { 100 } else { $x + 05 } } }
+def more-transparenty [] { modify-transparenty { |x| if ($x <= 5) { 0 } else { $x - 5 } } }
+
+def act_transparency [act] {
+  match ($act) {
+    "+" => (less-transparenty),
+    "-" => (more-transparenty),
+  }
+}
+
+def act_gaps [act new_value?] {
+  # + makes windows "bigger"
+  match ($act) {
+    "-" => (^xmonadctl layout-spacing-inc),
+    "+" => (^xmonadctl layout-spacing-dec),
+  }
+}
+
+def act_brightness [act new_value?] {
+  match ($act) {
+    "+" => (nu "~/bin/adjust-brightness" +),
+    "-" => (nu "~/bin/adjust-brightness" -),
+  }
+}
+
+def check_mode [mode] {
+  assert ($mode in ["brightness", "volume", "gaps", "transparency"])
+}
+
+def store_mode [mode] {
+  check_mode $mode
+
+  { "knob-action-last-set-time": (date now)
+  , "knob-action": $mode
+  } | store_keys
+}
+
+def "main set-mode" [mode] {
+  store_mode $mode
+}
+
+def "main get-mode" [] {
+  ["knob-action-last-set-time" "knob-action"] | load_keys
+}
+
+def main [act] {
+  let res = ["knob-action-last-set-time" "knob-action"] | load_keys
+  let $last_time = $res.knob-action-last-set-time
+  let $last_action = $res.knob-action
+
+  let bad_input = ($last_time | is-empty) or ($last_action | is-empty)
+  let action = if ($bad_input or ((date now) - $last_time > 60sec)) {
+    "brightness"
+  } else {
+    $last_action
+  }
+
+  match $action {
+    "brightness" => (act_brightness $act),
+    "gaps" => (act_gaps $act),
+    "volume" => (act_volume $act),
+    "transparency" => (act_transparency $act),
+  }
+
+  store_mode $action
+}
+
