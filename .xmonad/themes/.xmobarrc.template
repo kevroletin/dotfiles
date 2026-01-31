@@ -15,7 +15,7 @@ Config {
             "-w", "3"
           , "-L", "3"
           , "-H", "50"
-          , "--normal", "($xmobar.widget-yellow)"
+          , "--normal", "($xmobar.widget-white)"
           , "--high", "($xmobar.widget-red)"
           ]
           10

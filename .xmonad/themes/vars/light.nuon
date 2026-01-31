@@ -1,9 +1,9 @@
 {
-  xmobar.background: "#e3ddcc"
+  xmobar.background: "#eee8d5"
   xmobar.foreground: "#112c36"
   xmobar.widget-red: "#cc9290"
-  xmobar.widget-yellow: "#ccbd96"
-  xmobar.widget-white: "#ccc6b7"
+  xmobar.widget-yellow: "#b58900"
+  xmobar.widget-white: "#112c36"
   xmobar.green: "#168416"
 
   dunst.low.background: "#fdf6e3"
