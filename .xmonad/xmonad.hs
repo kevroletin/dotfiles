@@ -11,8 +11,7 @@ import qualified Data.Map as M
 import Data.Semigroup (All)
 import qualified Data.Text as T
 import Graphics.X11.ExtraTypes.XF86
-
--- slightly modified version which leaves borders arond floating windows most of the time
+import MarkEwmhFullscreen
 import MaximizeFocused
 import MyNoBorders
 import System.Clipboard (getClipboardString)
@@ -33,8 +32,6 @@ import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.ServerMode
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
-import XMonad.Layout.LayoutModifier (ModifiedLayout)
-import XMonad.Layout.LimitWindows
 import XMonad.Layout.Renamed
 import XMonad.Layout.Spacing
 import qualified XMonad.StackSet as W
@@ -401,14 +398,15 @@ main =
       }
  where
   withSpacing name x = named name (spacingWithEdge 7 x)
-  tallLayout = withSpacing "STall" (Tall 1 (3 / 100) (1 / 2)) 
+  tallLayout = withSpacing "STall" (Tall 1 (3 / 100) (1 / 2))
   myLayoutHook =
     avoidStruts $
       maximizeFocused $ -- M-f to temporary maximize windows
         (lessBorders (Combine Union Never OnlyFloat))
-          (tallLayout 
-          ||| withSpacing "SFull" Full 
-          ||| Full)
+          ( tallLayout
+              ||| withSpacing "SFull" Full
+              ||| markEwmhFullscreen Full
+          )
 
 myWorkspaces :: [String]
 myWorkspaces = ["web", "work", "3", "4", "5", "6", "7", "mail", "chat", "temp"]
