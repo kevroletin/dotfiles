@@ -401,12 +401,10 @@ main =
   tallLayout = withSpacing "STall" (Tall 1 (3 / 100) (1 / 2))
   myLayoutHook =
     avoidStruts $
-      maximizeFocused $ -- M-f to temporary maximize windows
-        (lessBorders (Combine Union Never OnlyFloat))
-          ( tallLayout
-              ||| withSpacing "SFull" Full
-              ||| markEwmhFullscreen Full
-          )
+      (lessBorders (Combine Union Never OnlyFloat)) $
+        ( maximizeFocused (tallLayout ||| withSpacing "SFull" Full)
+            ||| (markEwmhFullscreen Full)
+        )
 
 myWorkspaces :: [String]
 myWorkspaces = ["web", "work", "3", "4", "5", "6", "7", "mail", "chat", "temp"]
