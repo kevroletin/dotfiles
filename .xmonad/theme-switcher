@@ -7,14 +7,12 @@
 # * alacritty - terminal
 
 use nu store_key
+use std/log *
 
 def set_wallpaper [style] {
   let base_dir = $"($env.HOME)/Pictures/wallpapers"
-  let dir = if ($style == light) {
-    $"($base_dir)/light"
-  } else {
-    $"($base_dir)/dark"
-  }
+  let dir = $"($base_dir)/($style)"
+  info $dir
   let file = ls $dir | where type == file | shuffle | first | get name
   feh --bg-scale $file
 }
@@ -49,14 +47,14 @@ def set_alacritty_theme [style] {
   touch $"($x)/alacritty.toml"
 }
 
-def set_theme [style] {
+def set_theme [style --wallpaper:string] {
   let current = system_theme
 
   set_bunch_of_themes $style
   set_alacritty_theme $style
   set_rofi_theme $style
 
-  set_wallpaper $style
+  set_wallpaper ($wallpaper | default $style)
 
   $style | store_key "theme-style"
 }
@@ -92,7 +90,11 @@ def "main expand-templates" [new_style] {
   set_theme $new_style
 }
 
-def "main set" [new_style] {
+def "main set" [ext_style] {
+  let r = $ext_style | parse --regex "\(\(?<ext>.*\)-\)?\(?<style>.*\)" | first
+  let new_style = $r.style
+  let ext = $r.ext
+
   let new_theme = if ($new_style == light) {
       'prefer-light'
     } else if ($new_style == dark) {
@@ -102,7 +104,7 @@ def "main set" [new_style] {
       exit 1
     }
   gsettings set org.gnome.desktop.interface color-scheme $new_theme
-  set_theme $new_style
+  set_theme $new_style --wallpaper=$ext
 }
 
 def "main set-by-time" [] {

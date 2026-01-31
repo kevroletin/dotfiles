@@ -53,10 +53,11 @@ def toggle-transparenty [] {
 
 def less-transparenty [] { modify-transparenty { |x| if ($x >= 95) { 100 } else { $x + 05 } } }
 def more-transparenty [] { modify-transparenty { |x| if ($x <= 5) { 0 } else { $x - 5 } } }
+def set-transparency [val] { modify-transparenty { |_x| $val } }
 def less-brightness [] { run-external $"($env.HOME)/bin/adjust-brightness" "-" }
 def more-brightness [] { run-external $"($env.HOME)/bin/adjust-brightness" "+" }
-
 def knob_mode [mode] { nu $"($env.HOME)/.xmonad/knob_action" set-mode $mode }
+def set_theme [theme] { nu $"($env.HOME)/.xmonad/theme-switcher" set $theme }
 
 let keys = {
   a: {
@@ -100,18 +101,59 @@ let keys = {
       t: [tall { || xmonadctl "layout-set-stall" }]
       f: ["maximize focused" { || xmonadctl "layout-toggle-focused-maximize" }]
       x: ["toggle float (eXclude from tiling)" { || xmonadctl "layout-toggle-float" }]
+      g: {
+        group: "gaps"
+        keys: {
+          "1": ["size 1" { || xmonadctl "layout-spacing-set-1" }]
+          "2": ["size 2" { || xmonadctl "layout-spacing-set-2" }]
+          "3": ["size 3" { || xmonadctl "layout-spacing-set-3" }]
+          "4": ["size 4" { || xmonadctl "layout-spacing-set-4" }]
+          "5": ["size 5" { || xmonadctl "layout-spacing-set-5" }]
+          t: [toggle { || xmonadctl "layout-spacing-toggle" }]
+        }
+      }
     }
   }
   s: {
     group: style
     keys: {
-      d: [dark { || nu $"($env.HOME)/.xmonad/theme-switcher" set dark }]
-      l: [light { || nu $"($env.HOME)/.xmonad/theme-switcher" set light }]
+      d: [dark { || set_theme dark }]
+      D: { 
+        group: "dark parameters" 
+        keys: {
+          b: [black { || set_theme late-dark }]
+          s: [sunset { || set_theme sunset-dark }]
+        }
+      }
+      l: [light { || set_theme light }]
+      L: {
+        group: "light parameters"
+        keys: {
+          e: [early, { || set_theme early-light }]
+        }
+      }
+      t: {
+        group: transparency
+        keys: {
+          "1": ["preset 1" { || set-transparency 90 }]
+          "2": ["preset 2" { || set-transparency 80 }]
+          "3": ["preset 3" { || set-transparency 70 }]
+          "4": ["preset 4" { || set-transparency 60 }]
+          "5": ["preset 5" { || set-transparency 50 }]
+          "6": ["preset 1" { || set-transparency 30 }]
+          "7": ["preset 2" { || set-transparency 30 }]
+          "8": ["preset 3" { || set-transparency 20 }]
+          "9": ["preset 4" { || set-transparency 10 }]
+          "0": ["preset 5" { || set-transparency 0 }]
+          t: [toggle { || toggle-transparenty }]
+        }
+      }
     }
   }
   t: {
     group: toggle
     keys: {
+      g: [gaps { || xmonadctl "layout-spacing-toggle" }]
       t: [transparency { || toggle-transparenty }]
       d: [docks { || run-external $"($env.HOME)/.xmonad/toggle-xmobar" }]
     }
@@ -123,13 +165,14 @@ let key_txt_lines = $key_list | each { $"($in.key)\t($in.desc)" }
 
 def flatten_keys [res acc_key acc_desc value] {
   match ($value | describe -d | get type) {
-    "list" => ($res | append {key: $acc_key, desc: $"($acc_desc) ($value | first)", act: ($value | get 1)}),
+    "list" => ($res | append {key: $acc_key, desc: $"($acc_desc) 🢚 ($value | first)", act: ($value | get 1)}),
     "record" => {
       let $group = $value.group
       $value.keys
       | items { |k, v| {key: $k, value: $v} }
       | reduce --fold $res { |$x, fold|
-        flatten_keys $fold $"($acc_key)($x.key)" $"($acc_desc) ($group)" $x.value
+        let combined_name = if ($acc_desc | is-empty) { $group } else { $"($acc_desc) 🢚 ($group)" }
+        flatten_keys $fold $"($acc_key)($x.key)" $combined_name $x.value
       }
     }
   }

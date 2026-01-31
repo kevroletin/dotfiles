@@ -25,8 +25,8 @@ def more-transparenty [] { modify-transparenty { |x| if ($x <= 5) { 0 } else { $
 
 def act_transparency [act] {
   match ($act) {
-    "+" => (less-transparenty),
-    "-" => (more-transparenty),
+    "-" => (less-transparenty),
+    "+" => (more-transparenty),
   }
 }
 
@@ -60,6 +60,7 @@ def store_mode [mode] {
 
 def "main set-mode" [mode] {
   store_mode $mode
+  notify-send $"Knob mode: ($mode)"
 }
 
 def "main get-mode" [] {

@@ -369,8 +369,19 @@ myCommands =
   , ("layout-toggle-focused-maximize", withFocused (sendMessage . maximizeFocusedRestore))
   , ("layout-toggle-float", toggleFloat)
   , --
-    ("layout-spacing-inc", incScreenWindowSpacing 4)
-  , ("layout-spacing-dec", decScreenWindowSpacing 4)
+    ("layout-spacing-inc", incScreenWindowSpacing defSpacing)
+  , ("layout-spacing-dec", decScreenWindowSpacing defSpacing)
+  , ("layout-spacing-set-1", setScreenWindowSpacing (defSpacing * 1))
+  , ("layout-spacing-set-2", setScreenWindowSpacing (defSpacing * 2))
+  , ("layout-spacing-set-3", setScreenWindowSpacing (defSpacing * 3))
+  , ("layout-spacing-set-4", setScreenWindowSpacing (defSpacing * 4))
+  , ("layout-spacing-set-5", setScreenWindowSpacing (defSpacing * 5))
+  ,
+    ( "layout-spacing-toggle"
+    , do
+        toggleScreenSpacingEnabled
+        toggleWindowSpacingEnabled
+    )
   ]
 
 myServerModeEventHook :: Event -> X All
@@ -380,6 +391,9 @@ _listMyServerCmds :: X ()
 _listMyServerCmds = spawn ("echo '" ++ asmc ++ "' | xmessage -file -")
  where
   asmc = concat $ "Available commands:" : map (\(x, _) -> "    " ++ x) myCommands
+
+defSpacing :: (Num a) => a
+defSpacing = 6
 
 main :: IO ()
 main =
@@ -410,7 +424,7 @@ main =
           myServerModeEventHook <> handleEventHook desktopConfig <> Hacks.trayerAboveXmobarEventHook
       }
  where
-  withSpacing name x = named name (spacingWithEdge 8 x)
+  withSpacing name x = named name (spacingWithEdge defSpacing x)
   tallLayout = withSpacing "STall" (Tall 1 (3 / 100) (1 / 2))
   myLayoutHook =
     avoidStruts $
