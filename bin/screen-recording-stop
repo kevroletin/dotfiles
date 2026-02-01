@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -f '/tmp/screen_capture_pid' ]; then
+  JOB_PID=$(cat '/tmp/screen_capture_pid')
+  kill $JOB_PID
+  rm -f /tmp/screen_capture_pid
+  notify-send "Screen capture stopped"
+fi

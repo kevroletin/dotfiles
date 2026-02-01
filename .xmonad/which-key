@@ -145,6 +145,8 @@ let keys = {
       V: [videos { || yazi_tiled "~/Videos"}]
       c: [documents { || yazi_float "~/Documents"}]
       C: [documents { || yazi_tiled "~/Documents"}]
+      r: ["screen recordings" { || yazi_float "~/Videos/recordings"}]
+      R: ["screen recordings" { || yazi_tiled "~/Videos/recordings"}]
       s: [documents { || yazi_float "~/Share/screenshots"}]
       S: [documents { || yazi_tiled "~/Share/screenshots"}]
     }
@@ -174,12 +176,8 @@ let keys = {
       r: {
         group: "screen recorder"
         keys: {
-          r: [start { || ~/bin/capture-start }]
-          c: [cancell { || ~/bin/capture-stop }]
-          b: [browse { || 
-            cd ~/Videos/capture
-            alacritty_float yazi
-          }]
+          r: [start { || ~/bin/screen-recording-start }]
+          c: [cancell { || ~/bin/screen-recording-stop }]
         }
       }
     }
