@@ -6,10 +6,12 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 
+import Control.Exception as E
 import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Semigroup (All)
 import qualified Data.Text as T
+import Data.Traversable
 import Graphics.X11.ExtraTypes.XF86
 import MarkEwmhFullscreen
 import MaximizeFocused
@@ -34,10 +36,12 @@ import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Layout.Renamed
 import XMonad.Layout.Spacing
+import XMonad.Prelude (fromMaybe, listToMaybe, (>=>))
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.Hacks as Hacks
 import XMonad.Util.Loggers
 import XMonad.Util.NamedScratchpad
+import XMonad.Util.NamedWindows
 import XMonad.Util.Run (
   runProcessWithInput,
   safeSpawn,
@@ -315,17 +319,50 @@ myUpKeys _conf =
 myKeys :: XConfig Layout -> M.Map KeyCombination (X ())
 myKeys x = M.fromList (keysToAdd x)
 
-{- | Get the name of the current layout.
-https://hackage.haskell.org/package/xmonad-0.18.0/docs/XMonad-StackSet.html#t:Workspace
--}
+fstOr x [] = x
+fstOr _ (x : _) = x
+
+-- modified https://xmonad.github.io/xmonad-docs/xmonad-contrib/src/XMonad.Util.NamedWindows.html#getNameWMClass
+_getNameWMClass :: Window -> X String
+_getNameWMClass w =
+  withDisplay $ \d ->
+    -- TODO, this code is ugly and convoluted -- clean it up
+    do
+      let getIt = bracket getProp (xFree . tp_value) copy
+          getProp = getTextProperty d w wM_CLASS
+          copy prop =
+            fromMaybe "" . listToMaybe <$> wcTextPropertyToTextList d prop
+      io $
+        getIt `E.catch` \(SomeException _) ->
+          resName <$> getClassHint d w
+
 logNumWin :: Logger
-logNumWin = withWindowSet $ return . Just . countWindows . W.stack . W.workspace . W.current
+logNumWin = withWindowSet $ \ws -> do
+  case (W.stack . W.workspace . W.current) ws of
+    Nothing -> pure (Just "")
+    Just st -> do
+      xs@W.Stack{up, focus, down} <- readNames st
+      let before = if null up then "" else ("✦ " ++ L.intercalate " ✦ " (reverse up))
+      let after = if null down then "" else (L.intercalate " ✦ " down)
+      let res = before ++ " ⮞ " ++ focus ++ " ⮜ " ++ after
+      pure (Just res)
  where
-  countWindows Nothing = ""
-  countWindows (Just W.Stack{up, down}) =
-    case length up + length down of
-      0 -> ""
-      x -> "... " ++ show x ++ " more"
+  prettyNameM :: Window -> X String
+  prettyNameM w = do
+    name <- show <$> getName w
+    cls <- _getNameWMClass w
+    pure (cls ++ " " ++ shorten 10 name)
+
+  readNames :: W.Stack Window -> X (W.Stack String)
+  readNames st = traverse prettyNameM st
+
+  prettyStack :: W.Stack Window -> X [String]
+  prettyStack ws@W.Stack{up, focus, down} =
+    forM (W.integrate ws) prettyNameM
+
+-- case length up + length down of
+--   0 -> ""
+--   x -> "... " ++ show x ++ " more"
 
 mySB :: StatusBarConfig
 mySB =
@@ -338,7 +375,7 @@ mySB =
   myPP =
     xmobarPP
       { ppCurrent = wrap "⮞ " " ⮜"
-      , ppTitle = id
+      , ppTitle = const ""
       , ppHidden = noScratchPad
       , ppSep = " | "
       , ppLayout = id
