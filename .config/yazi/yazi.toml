@@ -13,7 +13,7 @@ reveal = [
   { run = 'xdg-open "$(dirname "$1")"',           desc = "Reveal", for = "linux" },
 ]
 extract = [
-	{ run = 'ya pub extract --list "$@"', desc = "Extract here", for = "unix" },
+  { run = 'ya pub extract --list "$@"', desc = "Extract here", for = "unix" },
 ]
 play = [
   { run = 'mpv --force-window "$@"', desc = "Play with mpv", orphan = true, for = "unix" },
@@ -24,6 +24,10 @@ play-only-audio = [
 set-wallpaper = [
   { run = 'feh --bg-fill %s', desc =  "Set wallpaper", orphan = true, for = "unix" },
 ]
+img-open = [
+  { run = '[ -z "${YAZI_WALLPAPER_EXPLORER}" ] && xdg-open "$1" || feh --bg-fill "$1"',
+    desc = "Open/Set wallpaper", for = "linux" },
+]
 
 [open]
 rules = [
@@ -32,7 +36,7 @@ rules = [
   # Text
   { mime = "text/*", use = [ "edit", "reveal" ] },
   # Image
-  { mime = "image/*", use = [ "open", "set-wallpaper", "reveal" ] },
+  { mime = "image/*", use = ["img-open", "set-wallpaper", "reveal" ] },
   # Media
   { mime = "{audio,video}/*", use = [ "play", "play-only-audio", "reveal" ] },
   # Archive

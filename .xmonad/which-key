@@ -57,7 +57,7 @@ def set-transparency [val] { modify-transparenty { |_x| $val } }
 def less-brightness [] { run-external $"($env.HOME)/bin/adjust-brightness" "-" }
 def more-brightness [] { run-external $"($env.HOME)/bin/adjust-brightness" "+" }
 def knob_mode [mode] { nu $"($env.HOME)/.xmonad/knob_action" set-mode $mode }
-def set_theme [theme] { nu $"($env.HOME)/.xmonad/theme-switcher" set $theme }
+def --wrapped theme [...$rest] { nu $"($env.HOME)/.xmonad/theme-switcher" ...$rest }
 
 let keys = {
   a: {
@@ -117,23 +117,16 @@ let keys = {
   s: {
     group: style
     keys: {
-      d: [dark { || set_theme dark }]
-      D: { 
-        group: "dark parameters" 
-        keys: {
-          b: [black { || set_theme late-dark }]
-          s: [sunset { || set_theme sunset-dark }]
-        }
-      }
-      l: [light { || set_theme light }]
-      L: {
-        group: "light parameters"
-        keys: {
-          e: [early, { || set_theme early-light }]
-        }
-      }
-      t: {
-        group: transparency
+      d: [dark { || theme set dark }]
+      D: [late-dark { || theme set late-dark }]
+      l: [light { || theme set light }]
+      L: [early-light { || theme set early-light }]
+      e: [evening { || theme set sunset-dark }]
+      s: [auto { || theme set-by-time }]
+      t: [toggle { || theme "toggle" }]
+      w: [wallpaper { || theme "choose-wallpaper" }]
+      o: {
+        group: opacity
         keys: {
           "1": ["preset 1" { || set-transparency 90 }]
           "2": ["preset 2" { || set-transparency 80 }]
@@ -154,6 +147,7 @@ let keys = {
     group: toggle
     keys: {
       g: [gaps { || xmonadctl "layout-spacing-toggle" }]
+      s: [style { || theme "toggle" }]
       t: [transparency { || toggle-transparenty }]
       d: [docks { || run-external $"($env.HOME)/.xmonad/toggle-xmobar" }]
     }
@@ -165,13 +159,13 @@ let key_txt_lines = $key_list | each { $"($in.key)\t($in.desc)" }
 
 def flatten_keys [res acc_key acc_desc value] {
   match ($value | describe -d | get type) {
-    "list" => ($res | append {key: $acc_key, desc: $"($acc_desc) 🢚 ($value | first)", act: ($value | get 1)}),
+    "list" => ($res | append {key: $acc_key, desc: $"($acc_desc) > ($value | first)", act: ($value | get 1)}),
     "record" => {
       let $group = $value.group
       $value.keys
       | items { |k, v| {key: $k, value: $v} }
       | reduce --fold $res { |$x, fold|
-        let combined_name = if ($acc_desc | is-empty) { $group } else { $"($acc_desc) 🢚 ($group)" }
+        let combined_name = if ($acc_desc | is-empty) { $group } else { $"($acc_desc) > ($group)" }
         flatten_keys $fold $"($acc_key)($x.key)" $combined_name $x.value
       }
     }

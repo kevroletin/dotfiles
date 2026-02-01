@@ -6,15 +6,20 @@
 # * dunst - notifications
 # * alacritty - terminal
 
-use nu store_key
+use nu *
 use std/log *
 
-def set_wallpaper [style] {
+def wallpaper_dir [$style] {
   let base_dir = $"($env.HOME)/Pictures/wallpapers"
-  let dir = $"($base_dir)/($style)"
-  info $dir
-  let file = ls $dir | where type == file | shuffle | first | get name
-  feh --bg-scale $file
+  $"($base_dir)/($style)"
+}
+
+def set_wallpaper [] {
+  feh --bg-scale $in
+}
+
+def set_random_wallpaper [style] {
+  ls (wallpaper_dir $style) | where type == file | shuffle | first | get name | set_wallpaper
 }
 
 def link_config [file_path, style] {
@@ -47,16 +52,11 @@ def set_alacritty_theme [style] {
   touch $"($x)/alacritty.toml"
 }
 
-def set_theme [style --wallpaper:string] {
-  let current = system_theme
-
+def set_theme [style --wallpaper-style:string] {
   set_bunch_of_themes $style
   set_alacritty_theme $style
   set_rofi_theme $style
-
-  set_wallpaper ($wallpaper | default $style)
-
-  $style | store_key "theme-style"
+  set_random_wallpaper ($wallpaper_style | default $style)
 }
 
 def system_theme [] {
@@ -85,17 +85,16 @@ def "main monitor" [] {
       }
 }
 
-
-def "main expand-templates" [new_style] {
-  set_theme $new_style
+def split_ext_style [] {
+   parse --regex "\(\(?<ext>.*\)-\)?\(?<style>.*\)" | first
 }
 
-def "main set" [ext_style] {
-  let r = $ext_style | parse --regex "\(\(?<ext>.*\)-\)?\(?<style>.*\)" | first
+def set_theme_ext [$ext_style --persist] {
+  let r = $ext_style | split_ext_style
   let new_style = $r.style
   let ext = $r.ext
 
-  let new_theme = if ($new_style == light) {
+  let gnome_style = if ($new_style == light) {
       'prefer-light'
     } else if ($new_style == dark) {
       'prefer-dark'
@@ -103,25 +102,65 @@ def "main set" [ext_style] {
       print "expecting 'light' or 'dark'"
       exit 1
     }
-  gsettings set org.gnome.desktop.interface color-scheme $new_theme
-  set_theme $new_style --wallpaper=$ext
+  set_theme $new_style --wallpaper-style $ext
+
+  info $"persist: ($persist)"
+  info $"new_style: ($new_style)"
+  if ($persist) {
+    $ext_style | store_key "theme-style"
+    gsettings set org.gnome.desktop.interface color-scheme $gnome_style
+  }
+}
+
+def "main expand-templates" [new_style] {
+  set_theme_ext $new_style
+}
+
+def "main set" [new_style] {
+  set_theme_ext $new_style --persist
 }
 
 def "main set-by-time" [] {
   let h = date now | format date "%H" | into int
-  let style = if (6 <= $h and $h <= 18) {
+  let ext_style = if (6 <= $h and $h < 9) {
+    "early-light"
+  } else if (9 <= $h and $h < 18) {
     "light"
+  } else if (18 <= $h and $h < 10) {
+    "dark"
   } else {
-     "dark"
+     "late-dark"
   }
-  set_theme $style
-  gsettings set org.gnome.desktop.interface color-scheme $"prefer-($style)"
+  set_theme_ext $ext_style --persist
 }
 
 def "main toggle" [] {
-  let style = if ((system_theme) == "light") { "dark" } else { "light" }
-  set_theme $style
-  gsettings set org.gnome.desktop.interface color-scheme $"prefer-($style)"
+  let style = if ((system_theme) =~ "light") { "dark" } else { "light" }
+  set_theme_ext $style --persist
+}
+
+def open_menu [] {
+  (/usr/bin/rofi
+    -dmenu
+    -window-title "Wallpapers"
+    -cycle
+    -selected-row
+    -auto-select
+  )
+}
+
+def "main choose-wallpaper" [] {
+  "theme-style" | load_key | print $in
+  let $r = "theme-style" | load_key | default (system_theme) | split_ext_style
+  let $dir = wallpaper_dir ($r.ext | default $r.style)
+  print $r
+  info $dir
+  cd $dir
+  $env.YAZI_WALLPAPER_EXPLORER = true
+  (alacritty
+    -o window.dimensions.columns=100 -o window.dimensions.lines=30
+    --class xmonad-center-float -e yazi
+  )
 }
 
 def main [] {
