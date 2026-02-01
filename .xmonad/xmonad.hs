@@ -225,14 +225,14 @@ keysToAdd x =
   , ((modMask x, xK_h), prevWS)
   , ((modMask x, xK_l), nextWS)
   , -- spawn
-    ((modMask x, xK_p), spawn "rofi -show run")
+    ((modMask x, xK_p), unGrab >> spawn "rofi -show run")
   , ((modMask x .|. shiftMask, xK_p), spawn "rofi -show window")
   , ((modMask x .|. controlMask, xK_Return), safeSpawn "emacs" [])
   , -- Mod + Tab enters "cycle through history" mode.
     ((modMask x, xK_Tab), cycleRecentWS [xK_Tab] xK_Left xK_Right)
   , -- Print screen
-    ((controlMask, xK_Print), spawn "cd ~/Share; sleep 0.2; scrot -s")
-  , ((0, xK_Print), spawn "cd ~/Share; scrot")
+    ((controlMask, xK_Print), unGrab >> spawn "cd ~/Share; sleep 0.2; scrot -s")
+  , ((0, xK_Print), unGrab >> spawn "cd ~/Share; scrot")
   , ((modMask x, xK_F1), spawn "xprop | xmessage -file -")
   , ((modMask x, xK_F3), openObsidian)
   , ((modMask x, xK_F4), killOrSpawn "redshift" [])
@@ -249,7 +249,7 @@ keysToAdd x =
     , do
         -- scientifically unproved attempt to eliminate potential slowdonw of starting which-key script
         -- which might become slower over time
-        spawn "rofi -input ~/.xmonad/which-key.list.txt -drun-use-desktop-cache -dmenu -window-title 'Which key' -cycle -matching regex -selected-row -filter '^' -auto-select | nu --stdin ~/.xmonad/which-key continue"
+        unGrab >> spawn "rofi -input ~/.xmonad/which-key.list.txt -drun-use-desktop-cache -dmenu -window-title 'Which key' -cycle -matching regex -selected-row -filter '^' -auto-select | nu --stdin ~/.xmonad/which-key continue"
     )
   , ((modMask x .|. shiftMask .|. controlMask, xK_space), do spawn "~/.xmonad/which-key repeat")
   , -- cycle layouts
@@ -412,7 +412,7 @@ main =
           updatePointer (0.5, 0.5) (0, 0)
       , modMask = mod4Mask
       , focusedBorderColor = "#dc322f"
-      , normalBorderColor = "#839496"
+      , normalBorderColor = "#657b83"
       , focusFollowsMouse = False
       , keys = myKeys
       , terminal = "alacritty"
@@ -424,12 +424,12 @@ main =
           myServerModeEventHook <> handleEventHook desktopConfig <> Hacks.trayerAboveXmobarEventHook
       }
  where
-  withSpacing name x = named name (spacingWithEdge defSpacing x)
-  tallLayout = withSpacing "STall" (Tall 1 (3 / 100) (1 / 2))
+  withSpacing size name x = named name (spacingWithEdge size x)
+  tallLayout = withSpacing defSpacing "STall" (Tall 1 (3 / 100) (1 / 2))
   myLayoutHook =
     avoidStruts $
       (lessBorders (Combine Union Never OnlyFloat)) $
-        ( maximizeFocused (tallLayout ||| withSpacing "SFull" Full)
+        ( maximizeFocused (tallLayout ||| withSpacing (2 * defSpacing) "SFull" Full)
             ||| (markEwmhFullscreen Full)
         )
 

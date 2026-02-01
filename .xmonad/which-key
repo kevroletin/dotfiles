@@ -5,6 +5,23 @@ use nu/dot/sys *
 use nu/dot/theme *
 use std/log *
 
+def yes_no [$msg $act] {
+  "yes\nno" | rofi -theme-str 'entry { placeholder: "yes"; }' -l 2 -dmenu -p $msg | each {
+    if ($in =~ "yes") {
+      do $act
+    }
+  }
+}
+
+def screenshot [--fullscreen] {
+  let dir = $"($env.HOME)/Share/screenshots"
+  mkdir $dir
+  cd $dir
+  let opts = if $fullscreen { [] } else { [--select] }
+  let fname = scrot ...$opts --freeze -e 'echo "$f"' | str trim
+  $"($dir)/($fname)" | xclip -i -selection clipboard
+  notify-send $"Screenshot: ($fname)"
+}
 # open pamix and switch it into "output" tab
 def pamix [] {
   let idx = job spawn {
@@ -119,11 +136,17 @@ let keys = {
     group: open
     keys: {
       m: [music { || yazi_float "~/Music"}]
+      M: [music { || yazi_tiled "~/Music"}]
       d: [downloads { || yazi_float "~/Downloads"}]
-      s: [scratch { || yazi_float "~/Scratch"}]
+      D: [downloads { || yazi_tiled "~/Downloads"}]
       p: [pictures { || yazi_float "~/Pictures"}]
+      P: [pictures { || yazi_tiled "~/Pictures"}]
       v: [videos { || yazi_float "~/Videos"}]
+      V: [videos { || yazi_tiled "~/Videos"}]
       c: [documents { || yazi_float "~/Documents"}]
+      C: [documents { || yazi_tiled "~/Documents"}]
+      s: [documents { || yazi_float "~/Share/screenshots"}]
+      S: [documents { || yazi_tiled "~/Share/screenshots"}]
     }
   }
   t: {
@@ -139,6 +162,15 @@ let keys = {
   u: {
     group: utils
     keys: {
+      s: ["screenshot area" { || screenshot }]
+      S: ["screenshot screen" { || screenshot --fullscreen }]
+      o: ["xdg-open" { || 
+        let x = xclip -o -selection clipboard | lines | first | str trim
+        let name = $x | path basename
+        if ($x | path exists) {
+          yes_no $"xdg-open '($name)'?" { xdg-open $x }
+        }
+      }]
       r: {
         group: "screen recorder"
         keys: {

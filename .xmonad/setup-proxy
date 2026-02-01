@@ -22,9 +22,19 @@ let proxychains_template = r#'
 socks5 ${IP} 10808
 '#
 
+let tinyproxy_template = r#'
+Port 10808
+Listen 127.0.0.1
+Timeout 600
+Allow 127.0.0.1
+upstream socks5 ${IP}:10808
+'#
+
 def expand_templates [gateway_ip] {
   $proxy_pac_template | str replace '${IP}' $gateway_ip | save -f $"($env.HOME)/Scratch/desktop/proxy_config/proxy.pac"
   $proxychains_template | str replace '${IP}' $gateway_ip | save -f $"($env.HOME)/.proxychains/proxychains.conf"
+  mkdir $"($env.HOME)/.config/tinyproxy/"
+  $tinyproxy_template | str replace '${IP}' $gateway_ip | save -f $"($env.HOME)/.config/tinyproxy/tinyproxy.conf"
 }
 
 def parse_gateway [] {
@@ -40,6 +50,7 @@ def go [] {
     print $"Gateway: ($gateway)"
     expand_templates $gateway
   }
+  systemctl --user restart tinyproxy.service
 }
 
 def "main monitor" [] {

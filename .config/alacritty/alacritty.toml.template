@@ -7,7 +7,7 @@ live_config_reload = true
 
 [window]
 
-padding = { x = 2, y = 0 }
+padding = { x = 2, y = 2 }
 dynamic_padding = true
 dynamic_title = true
 opacity = ($opacity)
