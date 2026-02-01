@@ -1,17 +1,14 @@
 #!/usr/bin/env -S nu --stdin
 
-use nu *
+use nu/dot/kv *
+use nu/dot/sys *
+use nu/dot/theme *
 use std/log *
 
-def --wrapped xmonadctl [...$rest] {
-  run-external $"($env.HOME)/.local/bin/xmonadctl" ...$rest
-}
-
+# open pamix and switch it into "output" tab
 def pamix [] {
   let idx = job spawn {
-    (^alacritty --class=xmonad-center-float
-      -o window.dimensions.columns=80 -o window.dimensions.lines=20
-      -e pamix)
+    alacritty_float pamix --w=80 --h=20
     "done" | job send 0
   }
   # wait until pamix started and ready to handle input
@@ -32,40 +29,13 @@ def pamix [] {
   job recv
 }
 
-def modify-transparenty [f] {
-  let config = $"($env.HOME)/.config/alacritty/alacritty.toml"
-  let template = $"($config).template"
-  let opacity = open -r $config | parse "opacity = {x}" | first | get x | default 1.0 | into float
-  let res = (do $f ($opacity * 100 | into int)) / 100
-  nu $"($env.HOME)/.xmonad/expand-template" --file $template --vars ({opacity: $res} | to nuon)
-}
-
-def toggle-transparenty [] {
-  modify-transparenty { |current|
-    let old = $current | store_key "alacritty.opacity" | default 100
-    if ($current >= 100) {
-      if ($old < 100) { $old } else { 85 }
-    } else {
-      100
-    }
-  }
-}
-
-def less-transparenty [] { modify-transparenty { |x| if ($x >= 95) { 100 } else { $x + 05 } } }
-def more-transparenty [] { modify-transparenty { |x| if ($x <= 5) { 0 } else { $x - 5 } } }
-def set-transparency [val] { modify-transparenty { |_x| $val } }
-def less-brightness [] { run-external $"($env.HOME)/bin/adjust-brightness" "-" }
-def more-brightness [] { run-external $"($env.HOME)/bin/adjust-brightness" "+" }
-def knob_mode [mode] { nu $"($env.HOME)/.xmonad/knob_action" set-mode $mode }
-def --wrapped theme [...$rest] { nu $"($env.HOME)/.xmonad/theme-switcher" ...$rest }
-
 let keys = {
   a: {
     group: adjust
     keys: {
       V: ["volume (pamix)" { || pamix }]
       v: [volume { || knob_mode "volume" }]
-      t: [transparency { || knob_mode "transparency" }]
+      o: [opacity { || knob_mode "opacity" }]
       g: [gaps { || knob_mode "gaps" }]
       b: [brightness { || knob_mode "brightness" }]
     }
@@ -81,7 +51,7 @@ let keys = {
     keys: {
       b: [brightness { || less-brightness }]
       g: [gaps { || xmonadctl layout-spacing-inc }]
-      t: [transparency { || less-transparenty }]
+      o: [opacity { || less-opacity }]
     }
   }
   i: {
@@ -89,7 +59,7 @@ let keys = {
     keys: {
       b: [brightness { || more-brightness }]
       g: [gaps { || xmonadctl layout-spacing-inc }]
-      t: [transparency { || more-transparenty }]
+      o: [opacity { || more-opacity }]
     }
   }
   l: {
@@ -110,6 +80,8 @@ let keys = {
           "4": ["size 4" { || xmonadctl "layout-spacing-set-4" }]
           "5": ["size 5" { || xmonadctl "layout-spacing-set-5" }]
           t: [toggle { || xmonadctl "layout-spacing-toggle" }]
+          i: [increase { || xmonadctl layout-spacing-inc }]
+          d: [decrease { || xmonadctl layout-spacing-dec }]
         }
       }
     }
@@ -117,39 +89,67 @@ let keys = {
   s: {
     group: style
     keys: {
-      d: [dark { || theme set dark }]
-      D: [late-dark { || theme set late-dark }]
-      l: [light { || theme set light }]
-      L: [early-light { || theme set early-light }]
-      e: [evening { || theme set sunset-dark }]
-      s: [auto { || theme set-by-time }]
-      t: [toggle { || theme "toggle" }]
-      w: [wallpaper { || theme "choose-wallpaper" }]
+      d: [dark { || theme-switcher set dark }]
+      D: [late-dark { || theme-switcher set late-dark }]
+      l: [light { || theme-switcher set light }]
+      L: [early-light { || theme-switcher set early-light }]
+      e: [evening { || theme-switcher set sunset-dark }]
+      s: [auto { || theme-switcher set-by-time }]
+      t: [toggle { || theme-switcher "toggle" }]
+      w: [wallpaper { || theme-switcher "choose-wallpaper" }]
       o: {
         group: opacity
         keys: {
-          "1": ["preset 1" { || set-transparency 90 }]
-          "2": ["preset 2" { || set-transparency 80 }]
-          "3": ["preset 3" { || set-transparency 70 }]
-          "4": ["preset 4" { || set-transparency 60 }]
-          "5": ["preset 5" { || set-transparency 50 }]
-          "6": ["preset 1" { || set-transparency 30 }]
-          "7": ["preset 2" { || set-transparency 30 }]
-          "8": ["preset 3" { || set-transparency 20 }]
-          "9": ["preset 4" { || set-transparency 10 }]
-          "0": ["preset 5" { || set-transparency 0 }]
-          t: [toggle { || toggle-transparenty }]
+          "1": ["preset 1" { || set-opacity 90 }]
+          "2": ["preset 2" { || set-opacity 80 }]
+          "3": ["preset 3" { || set-opacity 70 }]
+          "4": ["preset 4" { || set-opacity 60 }]
+          "5": ["preset 5" { || set-opacity 50 }]
+          "6": ["preset 1" { || set-opacity 30 }]
+          "7": ["preset 2" { || set-opacity 30 }]
+          "8": ["preset 3" { || set-opacity 20 }]
+          "9": ["preset 4" { || set-opacity 10 }]
+          "0": ["preset 5" { || set-opacity 0 }]
+          t: [toggle { || toggle-opacity }]
         }
       }
+    }
+  }
+  o: {
+    group: open
+    keys: {
+      m: [music { || yazi_float "~/Music"}]
+      d: [downloads { || yazi_float "~/Downloads"}]
+      s: [scratch { || yazi_float "~/Scratch"}]
+      p: [pictures { || yazi_float "~/Pictures"}]
+      v: [videos { || yazi_float "~/Videos"}]
+      c: [documents { || yazi_float "~/Documents"}]
     }
   }
   t: {
     group: toggle
     keys: {
       g: [gaps { || xmonadctl "layout-spacing-toggle" }]
-      s: [style { || theme "toggle" }]
-      t: [transparency { || toggle-transparenty }]
-      d: [docks { || run-external $"($env.HOME)/.xmonad/toggle-xmobar" }]
+      s: [style { || theme-switcher "toggle" }]
+      o: [opacity { || toggle-opacity }]
+      b: ["bar (status bar)" { || toggle_systemd_service xmobar }]
+      d: ["decorations" { || toggle_systemd_service picom }]
+    }
+  }
+  u: {
+    group: utils
+    keys: {
+      r: {
+        group: "screen recorder"
+        keys: {
+          r: [start { || ~/bin/capture-start }]
+          c: [cancell { || ~/bin/capture-stop }]
+          b: [browse { || 
+            cd ~/Videos/capture
+            alacritty_float yazi
+          }]
+        }
+      }
     }
   }
 }

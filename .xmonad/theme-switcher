@@ -6,7 +6,7 @@
 # * dunst - notifications
 # * alacritty - terminal
 
-use nu *
+use nu/dot/kv *
 use std/log *
 
 def wallpaper_dir [$style] {

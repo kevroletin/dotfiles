@@ -97,10 +97,16 @@
 !/.vimrc
 !/.xmonad/bin/xmonadctl.hs
 !/.xmonad/expand-template
+!/.xmonad/fourmolu.yaml
 !/.xmonad/hints.org
-!/.xmonad/nu/mod.nu
+!/.xmonad/knob-action
+!/.xmonad/nu/dot/kv/mod.nu
+!/.xmonad/nu/dot/sys/mod.nu
+!/.xmonad/nu/dot/theme/mod.nu
 !/.xmonad/package.yaml
 !/.xmonad/setup-proxy
+!/.xmonad/src/MarkEwmhFullscreen.hs
+!/.xmonad/src/MaximizeFocused.hs
 !/.xmonad/src/MyNoBorders.hs
 !/.xmonad/stack.yaml
 !/.xmonad/start-trayer

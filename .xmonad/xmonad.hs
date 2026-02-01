@@ -266,9 +266,9 @@ keysToAdd x =
   , ((modm, xK_grave), quakeAct)
   , ((modm .|. shiftMask, xK_n), namedScratchpadAction scratchpads "numen")
   , -- See Graphics.X11.ExtraTypes.XF86
-    ((0, xF86XK_AudioLowerVolume), spawn "~/.xmonad/knob_action -")
-  , ((0, xF86XK_AudioRaiseVolume), spawn "~/.xmonad/knob_action +")
-  , ((0, xF86XK_AudioMute), spawn "~/.xmonad/knob_action '!'")
+    ((0, xF86XK_AudioLowerVolume), spawn "~/.xmonad/knob-action -")
+  , ((0, xF86XK_AudioRaiseVolume), spawn "~/.xmonad/knob-action +")
+  , ((0, xF86XK_AudioMute), spawn "~/.xmonad/knob-action '!'")
   , ((0, xK_Scroll_Lock), voxtypeStart) -- see myUpKeys for the stop action
   -- Pin(unpin) window to all workspaces
   , ((modm .|. shiftMask, xK_a), windows copyToAll)
