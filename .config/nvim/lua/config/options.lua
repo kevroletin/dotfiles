@@ -4,3 +4,5 @@
 
 vim.opt.cursorline = false
 vim.opt.wrap = false
+vim.o.title = true
+vim.o.titlestring = "NVIM: %t"
