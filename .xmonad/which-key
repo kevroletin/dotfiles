@@ -46,6 +46,12 @@ def pamix [] {
   job recv
 }
 
+def quick_yazi_float [$dir] {
+  with-env { YAZI_QUIT_AFTER_OPEN: true } {
+    yazi_float $dir
+  }
+}
+
 let keys = {
   a: {
     group: adjust
@@ -135,20 +141,20 @@ let keys = {
   o: {
     group: open
     keys: {
-      m: [music { || yazi_float "~/Music"}]
+      m: [music { || quick_yazi_float "~/Music"}]
       M: [music { || yazi_tiled "~/Music"}]
-      d: [downloads { || yazi_float "~/Downloads"}]
+      d: [downloads { || quick_yazi_float "~/Downloads"}]
       D: [downloads { || yazi_tiled "~/Downloads"}]
-      p: [pictures { || yazi_float "~/Pictures"}]
+      p: [pictures { || quick_yazi_float "~/Pictures"}]
       P: [pictures { || yazi_tiled "~/Pictures"}]
-      v: [videos { || yazi_float "~/Videos"}]
+      v: [videos { || quick_yazi_float "~/Videos"}]
       V: [videos { || yazi_tiled "~/Videos"}]
-      c: [documents { || yazi_float "~/Documents"}]
+      c: [documents { || quick_yazi_float "~/Documents"}]
       C: [documents { || yazi_tiled "~/Documents"}]
-      r: ["screen recordings" { || yazi_float "~/Videos/recordings"}]
+      r: ["screen recordings" { || quick_yazi_float "~/Videos/recordings"}]
       R: ["screen recordings" { || yazi_tiled "~/Videos/recordings"}]
-      s: [documents { || yazi_float "~/Share/screenshots"}]
-      S: [documents { || yazi_tiled "~/Share/screenshots"}]
+      s: [screenshots { || quick_yazi_float "~/Share/screenshots"}]
+      S: [screenshots { || yazi_tiled "~/Share/screenshots"}]
     }
   }
   t: {
@@ -164,6 +170,7 @@ let keys = {
   u: {
     group: utils
     keys: {
+      c: ["color pick" { || xcolor -s clipboard }]
       s: ["screenshot area" { || screenshot }]
       S: ["screenshot screen" { || screenshot --fullscreen }]
       o: ["xdg-open" { || 

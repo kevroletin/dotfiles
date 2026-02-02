@@ -7,7 +7,7 @@ edit = [
   #{ run = 'vim --not-a-term "$@"', desc = "vim", block = true, for = "unix" },
 ]
 open = [
-  { run = 'xdg-open "$1"',                desc = "Open", for = "linux" },
+  { run = '[ -z "${YAZI_QUIT_AFTER_OPEN}" ] || ya emit quit; xdg-open "$1"',                desc = "Open", for = "linux" },
 ]
 reveal = [
   { run = 'xdg-open "$(dirname "$1")"',           desc = "Reveal", for = "linux" },
@@ -16,10 +16,10 @@ extract = [
   { run = 'ya pub extract --list "$@"', desc = "Extract here", for = "unix" },
 ]
 play = [
-  { run = 'mpv --force-window "$@"', desc = "Play with mpv", orphan = true, for = "unix" },
+  { run = '[ -z "${YAZI_QUIT_AFTER_OPEN}" ] || ya emit quit; mpv --force-window "$@"', desc = "Play with mpv", orphan = true, for = "unix" },
 ]
 play-only-audio = [
-  { run = 'alacritty -t "mpv: $@" -e mpv --no-video "$@"', desc =  "Only audio with mpv", orphan = true, for = "unix" },
+  { run = '[ -z "${YAZI_QUIT_AFTER_OPEN}" ] || ya emit quit; alacritty -t "mpv: $@" -e mpv --no-video "$@"', desc =  "Only audio with mpv", orphan = true, for = "unix" },
 ]
 set-wallpaper = [
   { run = 'feh --bg-fill %s', desc =  "Set wallpaper", orphan = true, for = "unix" },
