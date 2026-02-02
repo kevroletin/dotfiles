@@ -8,8 +8,8 @@ cd $"($env.HOME)/Videos/recordings"
 let filename = $"capture_(date now | format date "%Y.%m.%d-%H:%M:%S").mp4"
 
 let audio_sources = (
-  (pactl list sinks | parse "{_}Name:{name}" | get name | str trim | where { not ($in | str contains .monitof) }) | each { $"i\t($in)" } | append
-  (pactl list sources | parse "{_}Name:{name}" | get name | str trim | where { str contains ".monitor" } | each { $"o\t($in)" } )
+  (pactl list sinks | parse "{_}Name:{name}" | get name | str trim | each { $"i\t($in)" } ) | append
+  (pactl list sources | parse "{_}Name:{name}" | get name | str trim | each { $"o\t($in)" } )
 )
 
 let res = $audio_sources | to text | rofi -dmenu -p "Audio source" -i | parse "{_}\t{res}" | get res
@@ -32,7 +32,7 @@ let params = [
   -thread_queue_size 512
   -f pulse
   -ac 2
-  -i $res
+  -i $"'($res)'"
   -bsf:a aac_adtstoasc
   -c:a aac
   -ac 2
@@ -42,7 +42,7 @@ let params = [
   -maxrate:v 2400k
   -bufsize:v 2400k
   -c:v h264_nvenc -qp:v 19
-  $filename
+  $"'($filename)'"
 ]
 
 let cmd = $params | str join " "
