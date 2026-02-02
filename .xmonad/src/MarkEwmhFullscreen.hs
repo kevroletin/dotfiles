@@ -34,7 +34,7 @@ setFullscreenState w = do
   dpy <- asks display
 
   wmState <- io $ internAtom dpy "_NET_WM_STATE" False
-  fullscreen <- io $ internAtom dpy "_NET_WM_STATE_FULLSCREEN" False
+  fullscreen <- io $ internAtom dpy "_NET_WM_STATE_MAXIMIZED_HORZ" False
 
   currentState <- io $ getWindowProperty32 dpy wmState w
   case currentState of
@@ -49,7 +49,7 @@ removeFullscreenState w = do
   dpy <- asks display
 
   wmState <- io $ internAtom dpy "_NET_WM_STATE" False
-  fullscreen <- io $ internAtom dpy "_NET_WM_STATE_FULLSCREEN" False
+  fullscreen <- io $ internAtom dpy "_NET_WM_STATE_MAXIMIZED_HORZ" False
 
   currentState <- io $ getWindowProperty32 dpy wmState w
   case currentState of

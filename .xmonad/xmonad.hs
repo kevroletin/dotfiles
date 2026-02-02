@@ -34,6 +34,7 @@ import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.ServerMode
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
+import XMonad.Layout.MagicFocus
 import XMonad.Layout.Renamed
 import XMonad.Layout.Spacing
 import XMonad.Prelude (fromMaybe, listToMaybe, (>=>))
@@ -229,14 +230,14 @@ keysToAdd x =
   , ((modMask x, xK_h), prevWS)
   , ((modMask x, xK_l), nextWS)
   , -- spawn
-    ((modMask x, xK_p), unGrab >> spawn "rofi -show run")
-  , ((modMask x .|. shiftMask, xK_p), spawn "rofi -show window")
+    ((modMask x, xK_p), unGrab >> spawn "rofi -show window")
+  , ((modMask x .|. shiftMask, xK_p), unGrab >> spawn "rofi -show run")
   , ((modMask x .|. controlMask, xK_Return), safeSpawn "emacs" [])
   , -- Mod + Tab enters "cycle through history" mode.
     ((modMask x, xK_Tab), cycleRecentWS [xK_Tab] xK_Left xK_Right)
   , -- Print screen
-    ((controlMask, xK_Print), unGrab >> spawn "cd ~/Share; sleep 0.2; scrot -s")
-  , ((0, xK_Print), unGrab >> spawn "cd ~/Share; scrot")
+    ((controlMask, xK_Print), unGrab >> spawn "cd ~/Share/screenshots; sleep 0.2; scrot -s")
+  , ((0, xK_Print), unGrab >> spawn "cd ~/Share/screenshots; scrot")
   , ((modMask x, xK_F1), spawn "xprop | xmessage -file -")
   , ((modMask x, xK_F3), openObsidian)
   , ((modMask x, xK_F4), killOrSpawn "redshift" [])
@@ -281,8 +282,6 @@ keysToAdd x =
   , -- Default keybindings
     ((modMask x, xK_m), windows W.focusMaster) -- %! Move focus to the master window
   , ((modMask x, xK_Return), windows W.swapMaster) -- %! Swap the focused window and the master window
-  , ((modMask x .|. shiftMask, xK_k), windows W.swapUp) -- %! Swap the focused window with the previous window
-  -- ((modMask x, xK_t), withFocused $ windows . W.sink) -- %! Push window back into tiling
   , ((modMask x, xK_t), toggleFloat)
   ]
     ++
@@ -458,17 +457,21 @@ main =
           configureXset
       , workspaces = myWorkspaces
       , handleEventHook =
-          myServerModeEventHook <> handleEventHook desktopConfig <> Hacks.trayerAboveXmobarEventHook
+          myServerModeEventHook
+            <> handleEventHook desktopConfig
+            <> Hacks.trayerAboveXmobarEventHook
       }
  where
   withSpacing size name x = named name (spacingWithEdge size x)
-  tallLayout = withSpacing defSpacing "STall" (Tall 1 (3 / 100) (1 / 2))
+  tallLayout = magicFocus $ withSpacing defSpacing "STall" (Tall 1 (10 / 100) (2 / 3))
   myLayoutHook =
     avoidStruts $
       (lessBorders (Combine Union Never OnlyFloat)) $
-        ( maximizeFocused (tallLayout ||| withSpacing (2 * defSpacing) "SFull" Full)
+        ( maximizeFocused (tallLayout ||| withSpacing defSpacing "SFull" Full)
             ||| (markEwmhFullscreen Full)
         )
+
+-- \||| Full
 
 myWorkspaces :: [String]
 myWorkspaces = ["web", "work", "3", "4", "5", "6", "7", "mail", "chat", "temp"]
