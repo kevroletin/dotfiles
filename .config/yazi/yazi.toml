@@ -25,7 +25,7 @@ set-wallpaper = [
   { run = 'feh --bg-fill %s', desc =  "Set wallpaper", orphan = true, for = "unix" },
 ]
 img-open = [
-  { run = '[ -z "${YAZI_WALLPAPER_EXPLORER}" ] && xdg-open "$1" || feh --bg-fill "$1"',
+  { run = '[ -z "${YAZI_WALLPAPER_EXPLORER}" ] && xdg-open "$1" || (ya emit quit; feh --bg-fill "$1")',
     desc = "Open/Set wallpaper", for = "linux" },
 ]
 
