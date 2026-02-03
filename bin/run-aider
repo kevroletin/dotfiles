@@ -1,12 +1,13 @@
 #!/usr/bin/env nu
 
-let is_dark_mode = (^gsettings get org.gnome.desktop.interface color-scheme | str contains dark)
+# let is_dark_mode = (^gsettings get org.gnome.desktop.interface color-scheme | str contains dark)
+let is_dark_mode = true
 $env.AIDER_DARK_MODE = $is_dark_mode
 $env.AIDER_LIGHT_MODE = (not $is_dark_mode)
 $env.AIDER_CODE_THEME = if ($is_dark_mode) { "solarized-dark" } else { "solarized-light" }
 
 def --wrapped "main qwenn flash" [...rest] {
-  (^aider
+  (^proxychains -q aider
     --model openai/qwen3-coder-flash
     --no-show-model-warnings
     --edit-format whole
@@ -14,16 +15,16 @@ def --wrapped "main qwenn flash" [...rest] {
 }
 
 def --wrapped "main qwen plus" [...rest] {
-  (^aider
+  (^proxychains -q aider
     --model openai/qwen3-coder-plus
     --no-show-model-warnings
     --weak-model openai/qwen3-coder-flash
-    --edit-format whole
+    --edit-format diff
     ...$rest)
 }
 
 def --wrapped "main qwen max" [...rest] {
-  (^aider
+  (^proxychains -q aider
     --model openai/qwen3-max
     --no-show-model-warnings
     --editor-model openai/qwen3-coder-plus

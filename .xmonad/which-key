@@ -5,6 +5,23 @@ use nu/dot/sys *
 use nu/dot/theme *
 use std/log *
 
+# TODO: this implementation spawns an orphan to download the audio, while
+# the other implementation pops up a terminal... Do we really need this
+# background task? The pop-up terminal ux seem to be quite ok once we 
+# brought "minimize window" feature
+def --wrapped yt [...$rest] {
+  let cmd = [
+    yt-dlp
+    --remote-components ejs:github
+    --cookies-from-browser "firefox:/home/behemoth/snap/firefox/common/.mozilla/firefox/IyoTgaNE.Profile 6"
+    ...$rest
+  ] | each { if ($in | str contains " ") { $"'($in)'" } else { $in } }
+    | str join " "
+
+  $"#!/bin/sh
+nohup ($cmd) &" | sh -
+}
+
 def yes_no [$msg $act] {
   "yes\nno" | rofi -theme-str 'entry { placeholder: "yes"; }' -l 2 -dmenu -p $msg | each {
     if ($in =~ "yes") {
@@ -70,9 +87,10 @@ let keys = {
     }
   }
   c: {
-    group: connect
+    group: configure
     keys: {
       v: [wifi { || nmcli con up id "Xiaomi 15" }]
+      w: [wacom { || xsetwacom --set "Wacom One by Wacom S Pen stylus" Rotate half }]
     }
   }
   d: {
@@ -182,6 +200,27 @@ let keys = {
   u: {
     group: utils
     keys: {
+      y: {
+        group: youtube
+        keys: {
+          V: ["play video" { || cd ~/Videos; alacritty_tiled $"($env.HOME)/bin/yt-play" --save }]
+          v: ["play video" { || cd ~/Videos; alacritty_float $"($env.HOME)/bin/yt-play" --save }]
+          A: ["play audio" { || cd ~/Music/alacritty_tiled; nu $"($env.HOME)/bin/yt-play" --save --only-audio }]
+          a: ["play audio" { || cd ~/Music/alacritty_float; nu $"($env.HOME)/bin/yt-play" --save --only-audio }]
+          m: ["download audio to ~/Music" { ||
+                let url = ^xclip -o -selection clipboard
+                if ( try { $url | url parse } | is-not-empty) {
+                  cd ~/Music/
+                  notify-send $"Downloading ($url) into ~/Music"
+                  yt -f --no-playlist -f bestaudio --embed-thumbnail $url
+                } else {
+                  notify-send $"Clipboard has no url"
+                }
+             }]
+        }
+      }
+      t: [terminal { || alacritty_float $env.SHELL }]
+      h: [top { || alacritty_float "top" }]
       c: ["color pick" { || xcolor -s clipboard }]
       s: ["screenshot area" { || screenshot }]
       S: ["screenshot screen" { || screenshot --fullscreen }]
@@ -199,6 +238,13 @@ let keys = {
           c: [cancell { || ~/bin/screen-recording-stop }]
         }
       }
+    }
+  }
+  w: {
+    group: window
+    keys: {
+      h: [hide { || xmonadctl "layout-hide-window" }]
+      r: [restore { || xmonadctl "layout-restore-hidden-windor" }]
     }
   }
 }

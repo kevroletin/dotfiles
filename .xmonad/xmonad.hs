@@ -26,11 +26,14 @@ import XMonad
 import XMonad.Actions.CopyWindow
 import XMonad.Actions.CycleRecentWS
 import XMonad.Actions.CycleWS
+import XMonad.Actions.Minimize
 import XMonad.Actions.RotSlaves
 import XMonad.Actions.UpKeys
 import XMonad.Actions.UpdatePointer
 import XMonad.Config.Desktop (desktopConfig)
 import XMonad.Hooks.EwmhDesktops
+import XMonad.Layout.BoringWindows
+import qualified XMonad.Layout.BoringWindows as BW
 
 -- import XMonad.Hooks.FadeInactive
 import XMonad.Hooks.ManageDocks
@@ -39,6 +42,7 @@ import XMonad.Hooks.ServerMode
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
 import XMonad.Layout.MagicFocus
+import XMonad.Layout.Minimize
 import XMonad.Layout.Renamed
 import XMonad.Layout.Spacing
 import XMonad.Layout.ZoomRow
@@ -217,7 +221,9 @@ toggleLayout = do
 keysToAdd :: XConfig l -> [KeyBinding]
 keysToAdd x =
   [ -- quit, or restart
-    ((modMask x .|. shiftMask, xK_q), io exitSuccess)
+
+    ((modMask x, xK_u), withFocused minimizeWindow) -- Hide focused window
+  , ((modMask x .|. shiftMask, xK_q), io exitSuccess)
   , ((modMask x, xK_q), spawn "xmonad --recompile && xmonad --restart")
   , ((modMask x .|. shiftMask, xK_c), kill1) -- close only focused copied window
   , ((modMask x .|. shiftMask .|. controlMask, xK_c), kill)
@@ -226,8 +232,9 @@ keysToAdd x =
   , ((modm .|. shiftMask .|. controlMask, xK_k), windows W.swapUp)
   , ((modm .|. shiftMask, xK_j), rotAllDown)
   , ((modm .|. shiftMask, xK_k), rotAllUp)
-  , ((modm, xK_j), windows W.focusDown)
-  , ((modm, xK_k), windows W.focusUp)
+  , ((modm, xK_j), BW.focusDown)
+  , ((modm, xK_k), BW.focusUp)
+  , ((modMask x, xK_m), BW.focusMaster) -- %! Move focus to the master window
   , ((modMask x, xK_Left), prevWS)
   , ((modMask x, xK_Right), nextWS)
   , ((modMask x .|. shiftMask, xK_Left), shiftToPrev)
@@ -235,8 +242,8 @@ keysToAdd x =
   , ((modMask x, xK_h), prevWS)
   , ((modMask x, xK_l), nextWS)
   , -- spawn
-    ((modMask x, xK_p), unGrab >> spawn "rofi -show window")
-  , ((modMask x .|. shiftMask, xK_p), unGrab >> spawn "rofi -show run")
+    ((modMask x, xK_p), unGrab >> spawn "rofi -show run")
+  , ((modMask x .|. shiftMask, xK_p), unGrab >> spawn "rofi -show window")
   , ((modMask x .|. controlMask, xK_Return), safeSpawn "emacs" [])
   , -- Mod + Tab enters "cycle through history" mode.
     ((modMask x, xK_Tab), cycleRecentWS [xK_Tab] xK_Left xK_Right)
@@ -287,8 +294,7 @@ keysToAdd x =
   , ((modm, xK_a), killAllOtherCopies)
   , ((modm .|. shiftMask, xK_Return), spawnAlacritty)
   , -- Default keybindings
-    ((modMask x, xK_m), windows W.focusMaster) -- %! Move focus to the master window
-  , ((modMask x, xK_Return), windows W.swapMaster) -- %! Swap the focused window and the master window
+    ((modMask x, xK_Return), windows W.swapMaster) -- %! Swap the focused window and the master window
   , ((modMask x, xK_t), toggleFloat)
   ]
     ++
@@ -431,6 +437,8 @@ myCommands =
         toggleScreenSpacingEnabled
         toggleWindowSpacingEnabled
     )
+  , ("layout-hide-window", withFocused minimizeWindow)
+  , ("layout-restore-hidden-windor", withLastMinimized maximizeWindowAndFocus)
   ]
 
 myServerModeEventHook :: Event -> X All
@@ -526,10 +534,12 @@ main = do
   tallPinnedLayout = magicFocus $ withSpacing defSpacing "📌Tall" (Tall 1 (10 / 100) (2 / 3))
   myLayoutHook =
     avoidStruts $
-      (lessBorders (Combine Union Never OnlyFloat)) $
-        ( maximizeFocused (tallLayout ||| withSpacing defSpacing "SFull" Full)
-            ||| (markEwmhFullscreen Full)
-        )
+      boringWindows $
+        minimize $
+          (lessBorders (Combine Union Never OnlyFloat)) $
+            ( maximizeFocused (tallLayout ||| withSpacing defSpacing "SFull" Full)
+                ||| (markEwmhFullscreen Full)
+            )
 
 -- \||| Full
 

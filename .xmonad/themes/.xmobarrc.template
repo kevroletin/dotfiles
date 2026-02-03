@@ -7,7 +7,7 @@ Config {
   font = "xft:Bitstromwera Nerd Font"
   -- font = "xft:Monofur Nerd Font"
   -- font = "xft:BlexMono Nerd Font"
-  , textOffset = 0
+  , textOffset = 1
 
   , bgColor = "($xmobar.background)"
   , fgColor = "($xmobar.foreground)"

@@ -1,3 +1,5 @@
+# Add deno completions to search path
+if [[ ":$FPATH:" != *":/home/behemoth/.zsh/completions:"* ]]; then export FPATH="/home/behemoth/.zsh/completions:$FPATH"; fi
 #
 # Prezto
 #
@@ -248,3 +250,4 @@ eval "$(zoxide init zsh)"
 eval "$(direnv hook zsh)"
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+. "/home/behemoth/.deno/env"
