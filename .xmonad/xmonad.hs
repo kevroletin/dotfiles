@@ -3,8 +3,10 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE UnicodeSyntax #-}
 
 import Control.Exception as E
 import qualified Data.List as L
@@ -29,6 +31,8 @@ import XMonad.Actions.UpKeys
 import XMonad.Actions.UpdatePointer
 import XMonad.Config.Desktop (desktopConfig)
 import XMonad.Hooks.EwmhDesktops
+
+-- import XMonad.Hooks.FadeInactive
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.ServerMode
@@ -37,6 +41,7 @@ import XMonad.Hooks.StatusBar.PP
 import XMonad.Layout.MagicFocus
 import XMonad.Layout.Renamed
 import XMonad.Layout.Spacing
+import XMonad.Layout.ZoomRow
 import XMonad.Prelude (fromMaybe, listToMaybe, (>=>))
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.Hacks as Hacks
@@ -197,7 +202,7 @@ toggleFloat = floatOrNot (withFocused $ windows . W.sink) (withFocused centreFlo
 -- + disable repeating (bouncing) ScrollLock key
 -- + enable russian layout
 configureXset :: X ()
-configureXset = do spawnOnce "~/bin/configure-xset &"
+configureXset = do spawnOnce "~/.xmonad/configure-xset"
 
 toggleLayout :: X ()
 toggleLayout = do
@@ -254,11 +259,13 @@ keysToAdd x =
     , do
         -- scientifically unproved attempt to eliminate potential slowdonw of starting which-key script
         -- which might become slower over time
-        unGrab >> spawn "rofi -input ~/.xmonad/which-key.list.txt -drun-use-desktop-cache -dmenu -window-title 'Which key' -cycle -matching regex -selected-row -filter '^' -auto-select | nu --stdin ~/.xmonad/which-key continue"
+        --
+        unGrab >> spawn "setxkbmap -layout 'us'; rofi -input ~/.xmonad/which-key.list.txt -drun-use-desktop-cache -dmenu -window-title 'Which key' -cycle -matching regex -selected-row -filter '^' -auto-select | nu --stdin ~/.xmonad/which-key continue"
     )
   , ((modMask x .|. shiftMask .|. controlMask, xK_space), do spawn "~/.xmonad/which-key repeat")
   , -- cycle layouts
-    ((modMask x .|. shiftMask, xK_space), toggleLayout)
+    -- ((modMask x .|. shiftMask, xK_space), toggleLayout)
+    ((modMask x .|. shiftMask, xK_space), sendMessage NextLayout)
   , -- Float and enlarge selected window
     ((modMask x, xK_f), withFocused (sendMessage . maximizeFocusedRestore))
   , -- resizing the master/slave ratio
@@ -335,36 +342,42 @@ _getNameWMClass w =
         getIt `E.catch` \(SomeException _) ->
           resName <$> getClassHint d w
 
-logNumWin :: Logger
-logNumWin = withWindowSet $ \ws -> do
+tab theme fg bg =
+  wrap (xmobarColor bg (th_bg theme) "\xE0B6") (xmobarColor bg (th_bg theme) "\xE0B4") . xmobarColor fg bg
+activeTab theme = tab theme (th_activeTabFg theme) (th_activeTabBg theme)
+inactiveTab theme = tab theme (th_inactiveTabFg theme) (th_inactiveTabBg theme)
+workspaceTab theme = tab theme (th_workspaceTabFg theme) (th_workspaceTabBg theme)
+
+logNumWin :: Theme -> Logger
+logNumWin theme = withWindowSet $ \ws -> do
   case (W.stack . W.workspace . W.current) ws of
     Nothing -> pure (Just "")
     Just st -> do
-      xs@W.Stack{up, focus, down} <- readNames st
-      let before = if null up then "" else ("✦ " ++ L.intercalate " ✦ " (reverse up))
-      let after = if null down then "" else (L.intercalate " ✦ " down)
-      let res = before ++ " ⮞ " ++ focus ++ " ⮜ " ++ after
+      let items = length (W.up st) + length (W.down st) + 1
+      let availableLen = 90
+      let upperLimit = min 30 (max 5 (availableLen `div` items)) - 2
+
+      xs@W.Stack{up, focus, down} <- readNames upperLimit st
+
+      let up' = fmap (inactiveTab theme) up
+      let down' = fmap (inactiveTab theme) down
+      let before = if null up then "" else (L.intercalate "" (reverse up'))
+      let after = if null down then "" else (L.intercalate "" down')
+
+      let res = before ++ activeTab theme focus ++ after
       pure (Just res)
  where
-  prettyNameM :: Window -> X String
-  prettyNameM w = do
+  prettyNameM :: Int -> Window -> X String
+  prettyNameM upperLimit w = do
     name <- show <$> getName w
     cls <- _getNameWMClass w
-    pure (cls ++ " " ++ shorten 10 name)
+    pure (shorten upperLimit $ cls ++ " " ++ name)
 
-  readNames :: W.Stack Window -> X (W.Stack String)
-  readNames st = traverse prettyNameM st
+  readNames :: Int -> W.Stack Window -> X (W.Stack String)
+  readNames upperLimit = traverse (prettyNameM upperLimit)
 
-  prettyStack :: W.Stack Window -> X [String]
-  prettyStack ws@W.Stack{up, focus, down} =
-    forM (W.integrate ws) prettyNameM
-
--- case length up + length down of
---   0 -> ""
---   x -> "... " ++ show x ++ " more"
-
-mySB :: StatusBarConfig
-mySB =
+mySB :: Theme -> StatusBarConfig
+mySB theme =
   res
     { sbStartupHook = spawn "systemctl --user restart xmobar.service"
     , sbCleanupHook = pure () -- spawn "systemctl --user stop xmobar.service"
@@ -373,12 +386,12 @@ mySB =
   res = statusBarProp "xmobar ~/.xmobarrc" (copiesPP (wrap "✦" "") myPP)
   myPP =
     xmobarPP
-      { ppCurrent = wrap "⮞ " " ⮜"
+      { ppCurrent = workspaceTab theme
       , ppTitle = const ""
       , ppHidden = noScratchPad
-      , ppSep = " | "
+      , ppSep = " / "
       , ppLayout = id
-      , ppExtras = [logNumWin]
+      , ppExtras = [logNumWin theme]
       }
   noScratchPad ws = if ws == "NSP" then "" else ws
 
@@ -431,29 +444,75 @@ _listMyServerCmds = spawn ("echo '" ++ asmc ++ "' | xmessage -file -")
 defSpacing :: (Num a) => a
 defSpacing = 6
 
+data Theme = Theme
+  { th_bg :: String
+  , th_fg :: String
+  , th_inactiveTabBg :: String
+  , th_inactiveTabFg :: String
+  , th_activeTabBg :: String
+  , th_activeTabFg :: String
+  , th_workspaceTabFg :: String
+  , th_workspaceTabBg :: String
+  , th_focusedBorder :: String
+  , th_normalBorder :: String
+  }
+  deriving (Show)
+
+darkTheme =
+  Theme
+    { th_fg = "#ccc6b7"
+    , th_bg = "#000f13"
+    , th_activeTabFg = "#000f13"
+    , th_activeTabBg = "#ccc6b7"
+    , th_inactiveTabFg = "#eee8d5"
+    , th_inactiveTabBg = "#073642"
+    , th_workspaceTabFg = "#000f13"
+    , th_workspaceTabBg = "#ccc6b7"
+    , th_focusedBorder = "#d33682"
+    , th_normalBorder = "#586e75"
+    }
+
+lightTheme =
+  Theme
+    { th_fg = "#002b36"
+    , th_bg = "#eee8d5"
+    , th_inactiveTabFg = "#fdf6e3"
+    , th_inactiveTabBg = "#93a1a1"
+    , th_activeTabFg = "#fdf6e3"
+    , th_activeTabBg = "#073642"
+    , th_workspaceTabFg = "#fdf6e3"
+    , th_workspaceTabBg = "#073642"
+    , th_focusedBorder = "#dc322f"
+    , th_normalBorder = "#586e75"
+    }
+
 main :: IO ()
-main =
+main = do
+  systemTheme <- runProcessWithInput "/bin/sh" ["-c", "timeout 2s gsettings get org.gnome.desktop.interface color-scheme || echo prefer-light"] []
+  let theme = if "prefer-light" `L.isInfixOf` systemTheme then lightTheme else darkTheme
   xmonad
     . docks
-    . withEasySB mySB defToggleStrutsKey
+    . withEasySB (mySB theme) defToggleStrutsKey
     . (\c -> useUpKeys (def{grabKeys = True, upKeys = myUpKeys c}) c)
     -- . ewmhFullscreen -- maximize windows which enabled full screen by themselves
     . ewmh
     $ desktopConfig
       { manageHook = manageDocks <+> manageHook desktopConfig <+> namedScratchpadManageHook scratchpads <+> myManageHook
       , layoutHook = myLayoutHook
-      , logHook =
+      , logHook = do
+          -- fadeInactiveLogHook 1
           -- mouse pointer follows focus
           -- https://hackage.haskell.org/package/xmonad-contrib-0.18.1/docs/XMonad-Actions-UpdatePointer.html
           updatePointer (0.5, 0.5) (0, 0)
       , modMask = mod4Mask
-      , focusedBorderColor = "#dc322f"
-      , normalBorderColor = "#657b83"
+      , borderWidth = 1
+      , focusedBorderColor = th_focusedBorder theme
+      , normalBorderColor = th_normalBorder theme
       , focusFollowsMouse = False
       , keys = myKeys
       , terminal = "alacritty"
       , startupHook = do
-          windows $ W.greedyView "work"
+          -- windows $ W.greedyView "work"
           configureXset
       , workspaces = myWorkspaces
       , handleEventHook =
@@ -463,7 +522,8 @@ main =
       }
  where
   withSpacing size name x = named name (spacingWithEdge size x)
-  tallLayout = magicFocus $ withSpacing defSpacing "STall" (Tall 1 (10 / 100) (2 / 3))
+  tallLayout = withSpacing defSpacing "STall" (Tall 1 (10 / 100) (2 / 3))
+  tallPinnedLayout = magicFocus $ withSpacing defSpacing "📌Tall" (Tall 1 (10 / 100) (2 / 3))
   myLayoutHook =
     avoidStruts $
       (lessBorders (Combine Union Never OnlyFloat)) $
@@ -474,7 +534,7 @@ main =
 -- \||| Full
 
 myWorkspaces :: [String]
-myWorkspaces = ["web", "work", "3", "4", "5", "6", "7", "mail", "chat", "temp"]
+myWorkspaces = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
 
 myManageHook :: ManageHook
 myManageHook =

@@ -59,6 +59,12 @@ let keys = {
       V: ["volume (pamix)" { || pamix }]
       v: [volume { || knob_mode "volume" }]
       o: [opacity { || knob_mode "opacity" }]
+      w: {
+        group: window
+        keys: {
+          o: [opacity { || knob_mode "window-opacity" }]
+        }
+      }
       g: [gaps { || knob_mode "gaps" }]
       b: [brightness { || knob_mode "brightness" }]
     }
@@ -160,6 +166,12 @@ let keys = {
   t: {
     group: toggle
     keys: {
+      w: {
+        group: window
+        keys: {
+          o: [opacity { || sleep 0.1sec; picom-trans -t -c 95} ]
+        }
+      }
       g: [gaps { || xmonadctl "layout-spacing-toggle" }]
       s: [style { || theme-switcher "toggle" }]
       o: [opacity { || toggle-opacity }]
@@ -228,13 +240,23 @@ def interact [] {
   $key_list | get $selection
 }
 
+def with-restore-keymap [act] {
+  try {
+    do $act
+  }
+  setxkbmap -layout 'us,ru' -variant ',winkeys,winkeys' -option 'grp:shifts_toggle,grp_led:scroll,compose:ralt,terminate:ctrl_alt_bksp'
+}
+
 def main [] {
-  let res = interact
+  setxkbmap -layout 'us'
+  with-restore-keymap {
+    let res = interact
 
-  $res.key | store_key "which-key.last-action"
+    $res.key | store_key "which-key.last-action"
 
-  do $res.act
-  ignore
+    do $res.act
+    ignore
+  }
 }
 
 def "main repeat" [] {
@@ -251,15 +273,17 @@ def "main list" [] {
 }
 
 def "main continue" [] {
-  let inp_key = $in | parse "{keys}\t{_}" | get keys | first
-  info $"($inp_key)"
-  if ($inp_key | is-not-empty) {
-    $key_list | where key == $inp_key | first | each {
-      $in.key | store_key "which-key.last-action"
-      do $in.act
+  with-restore-keymap {
+    let inp_key = $in | parse "{keys}\t{_}" | get keys | first
+    info $"($inp_key)"
+    if ($inp_key | is-not-empty) {
+      $key_list | where key == $inp_key | first | each {
+        $in.key | store_key "which-key.last-action"
+        do $in.act
+      }
     }
+    $key_txt_lines | to text | save -f $"($env.HOME)/.xmonad/which-key.list.txt"
   }
-  $key_txt_lines | to text | save -f $"($env.HOME)/.xmonad/which-key.list.txt"
 }
 
 

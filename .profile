@@ -22,3 +22,4 @@ export LANGUAGE="en_US.UTF-8"
 
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 [ -f "$HOME/.ghcup/env" ] && . "$HOME/.ghcup/env"
+. "/home/behemoth/.deno/env"

@@ -70,8 +70,10 @@ def system_theme [] {
 def restart_deamons [] {
   # restarted by xmobar dependency in systemd
   # systemctl --user restart trayer.service
-  systemctl --user restart xmobar.service
+  # systemctl --user restart xmobar.service
+  xmonad --restart
   systemctl --user restart dunst.service
+  notify-send 'Desktop theme update'
 }
 
 def "main monitor" [] {
@@ -79,9 +81,16 @@ def "main monitor" [] {
       | lines
       | each {|line|
           print $line
-          system_theme | set_theme $in
-          restart_deamons
-          notify-send 'Desktop theme update'
+
+          let $last_time = "theme-style-last-set-time" | load_key
+          let bad_input = ($last_time | is-empty)
+
+          if ($bad_input or ((date now) - $last_time > 5sec)) {
+            system_theme | set_theme $in
+            restart_deamons
+          } else {
+            info "skipping automatic update because the theme was likely set manually just now"
+          }
       }
 }
 
@@ -109,6 +118,7 @@ def set_theme_ext [$ext_style --persist] {
   if ($persist) {
     $ext_style | store_key "theme-style"
     gsettings set org.gnome.desktop.interface color-scheme $gnome_style
+    date now | store_key "theme-style-last-set-time"
   }
 }
 
@@ -118,6 +128,7 @@ def "main expand-templates" [new_style] {
 
 def "main set" [new_style] {
   set_theme_ext $new_style --persist
+  restart_deamons
 }
 
 def "main set-by-time" [] {
@@ -132,11 +143,13 @@ def "main set-by-time" [] {
      "late-dark"
   }
   set_theme_ext $ext_style --persist
+  restart_deamons
 }
 
 def "main toggle" [] {
   let style = if ((system_theme) =~ "light") { "dark" } else { "light" }
   set_theme_ext $style --persist
+  restart_deamons
 }
 
 def open_menu [] {

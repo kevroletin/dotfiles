@@ -8,7 +8,7 @@ let color = open $"($env.HOME)/.xmonad/themes/.trayer_color" | str replace "#" "
   --SetDockType true
   --SetPartialStrut false
   --expand true
-  --width 10
+  --width 5
   --height 21
   --transparent true
   --alpha 0

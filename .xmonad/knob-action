@@ -7,8 +7,8 @@ use std/assert *
 
 def act_volume [act] {
   match ($act) {
-    "+" => (^pactl set-sink-volume @DEFAULT_SINK@ +10%),
-    "-" => (^pactl set-sink-volume @DEFAULT_SINK@ -10%)
+    "+" => (^pactl set-sink-volume @DEFAULT_SINK@ +3%),
+    "-" => (^pactl set-sink-volume @DEFAULT_SINK@ -3%)
     "!" => (^pactl set-sink-volume @DEFAULT_SINK@ 0)
   }
 }
@@ -17,6 +17,13 @@ def act_opacity [act] {
   match ($act) {
     "+" => (more-opacity),
     "-" => (less-opacity),
+  }
+}
+
+def act_window_opacity [act] {
+  match ($act) {
+    "+" => (picom-trans -c "+4"),
+    "-" => (picom-trans -c "-2"),
   }
 }
 
@@ -37,7 +44,7 @@ def act_brightness [act new_value?] {
 }
 
 def check_mode [mode] {
-  assert ($mode in ["brightness", "volume", "gaps", "opacity"])
+  assert ($mode in ["brightness", "volume", "gaps", "opacity", "window-opacity"])
 }
 
 def store_mode [mode] {
@@ -74,6 +81,7 @@ def main [act] {
     "gaps" => (act_gaps $act),
     "volume" => (act_volume $act),
     "opacity" => (act_opacity $act),
+    "window-opacity" => (act_window_opacity $act),
   }
 
   store_mode $action
