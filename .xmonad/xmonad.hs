@@ -32,6 +32,7 @@ import XMonad.Actions.UpKeys
 import XMonad.Actions.UpdatePointer
 import XMonad.Config.Desktop (desktopConfig)
 import XMonad.Hooks.EwmhDesktops
+import XMonad.Hooks.Minimize
 import XMonad.Layout.BoringWindows
 import qualified XMonad.Layout.BoringWindows as BW
 
@@ -221,7 +222,6 @@ toggleLayout = do
 keysToAdd :: XConfig l -> [KeyBinding]
 keysToAdd x =
   [ -- quit, or restart
-
     ((modMask x, xK_u), withFocused minimizeWindow) -- Hide focused window
   , ((modMask x .|. shiftMask, xK_q), io exitSuccess)
   , ((modMask x, xK_q), spawn "xmonad --recompile && xmonad --restart")
@@ -241,9 +241,10 @@ keysToAdd x =
   , ((modMask x .|. shiftMask, xK_Right), shiftToNext)
   , ((modMask x, xK_h), prevWS)
   , ((modMask x, xK_l), nextWS)
-  , -- spawn
-    ((modMask x, xK_p), unGrab >> spawn "rofi -show run")
-  , ((modMask x .|. shiftMask, xK_p), unGrab >> spawn "rofi -show window")
+  , ((modMask x, xK_p), unGrab >> spawn "rofi -show run")
+  , ((modMask x .|. shiftMask, xK_p), unGrab >> spawn "~/.xmonad/which-key window-list --bring")
+  , ((modMask x, xK_v), unGrab >> spawn "~/.xmonad/which-key window-list")
+  , ((modMask x .|. shiftMask, xK_v), unGrab >> spawn "rofi -show window")
   , ((modMask x .|. controlMask, xK_Return), safeSpawn "emacs" [])
   , -- Mod + Tab enters "cycle through history" mode.
     ((modMask x, xK_Tab), cycleRecentWS [xK_Tab] xK_Left xK_Right)
@@ -253,11 +254,10 @@ keysToAdd x =
   , ((modMask x, xK_F1), spawn "xprop | xmessage -file -")
   , ((modMask x, xK_F3), openObsidian)
   , ((modMask x, xK_F4), killOrSpawn "redshift" [])
-  , -- toggle docks
-    ((modMask x, xK_b), sendMessage ToggleStruts)
-  , ((modMask x .|. shiftMask, xK_b), do spawn "~/.xmonad/toggle-xmobar") -- kill xmobar
-  -- lock screen
-  , ((modMask x, xK_z), do safeSpawn "xscreensaver-command" ["-lock"])
+  , -- , ((modMask x, xK_b), sendMessage ToggleStruts)
+    -- , ((modMask x .|. shiftMask, xK_b), do spawn "~/.xmonad/toggle-xmobar") -- kill xmobar
+    -- lock screen
+    ((modMask x, xK_z), do safeSpawn "xscreensaver-command" ["-lock"])
   , ((modMask x .|. shiftMask, xK_z), do spawn "sleep 1s; xset dpms force off")
   , -- leader key
     -- ((modMask x, xK_space), do spawn "~/.xmonad/which-key")
@@ -304,13 +304,13 @@ keysToAdd x =
     | (i, k) <- zip (XMonad.workspaces x) [xK_1 .. xK_9]
     , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]
     ]
-    ++
+    -- ++
     -- mod-{w,e,r} %! Switch to physical/Xinerama screens 1, 2, or 3
     -- mod-shift-{w,e,r} %! Move client to screen 1, 2, or 3
-    [ ((m .|. modMask x, key), screenWorkspace sc >>= flip whenJust (windows . f))
-    | (key, sc) <- zip [xK_w, xK_e, xK_r] [0 ..]
-    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
-    ]
+    -- [ ((m .|. modMask x, key), screenWorkspace sc >>= flip whenJust (windows . f))
+    -- \| (key, sc) <- zip [xK_w, xK_e, xK_r] [0 ..]
+    -- , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
+    -- ]
     -- copy to workspace
     ++ [ ((m .|. modm, k), windows $ f i)
        | (i, k) <- zip (workspaces x) [xK_1 ..]
@@ -524,7 +524,8 @@ main = do
           configureXset
       , workspaces = myWorkspaces
       , handleEventHook =
-          myServerModeEventHook
+          minimizeEventHook
+            <> myServerModeEventHook
             <> handleEventHook desktopConfig
             <> Hacks.trayerAboveXmobarEventHook
       }

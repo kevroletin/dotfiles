@@ -39,6 +39,7 @@ def screenshot [--fullscreen] {
   $"($dir)/($fname)" | xclip -i -selection clipboard
   notify-send $"Screenshot: ($fname)"
 }
+
 # open pamix and switch it into "output" tab
 def pamix [] {
   let idx = job spawn {
@@ -69,6 +70,45 @@ def quick_yazi_float [$dir] {
   }
 }
 
+def window_list [--bring] {
+  let curr_ws = xdotool get_desktop | str trim
+  let ws_list = wmctrl -l | parse --regex '^([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+(.*)$' | str trim | rename id ws host name
+  let our_ws = $ws_list
+    | insert class { |row| xprop -id $row.id WM_CLASS | parse --regex '"([^"]+)"' | first | values | first }
+    | update id { into int }
+  let our_ws = if $bring {
+    $our_ws
+  } else {
+    $our_ws
+    | where ws == $curr_ws
+  }
+
+  let stacking = xprop -root | parse "_NET_CLIENT_LIST_STACKING(WINDOW): window id # {res}" | get res | first | split row ", "
+
+  let win_order = $stacking | enumerate | each {
+    { ($in.item | into int): ($in.index) }
+  } | into record
+
+  let $sorted = $our_ws
+    | insert order { |row| ($win_order | get --optional ($row.id | into string)) | default 0 }
+    | insert ws_1 { |row| ($row.ws | into int | ($in + 1)) }
+    | sort-by --reverse order
+
+  if ($sorted | is-not-empty) {
+    let choise = $sorted
+      | select ws_1 class name
+      | table --theme none -i false --width 1000 | lines | skip 1 | to text | ansi strip
+      | rofi -dmenu -i -format i
+
+    let res = $sorted | get ($choise | into int)
+
+    if $bring {
+      wmctrl -i -r $res.id -t $curr_ws
+    }
+    wmctrl -i -a $res.id
+  }
+}
+
 let keys = {
   a: {
     group: adjust
@@ -89,8 +129,8 @@ let keys = {
   c: {
     group: configure
     keys: {
-      v: [wifi { || nmcli con up id "Xiaomi 15" }]
-      w: [wacom { || xsetwacom --set "Wacom One by Wacom S Pen stylus" Rotate half }]
+      w: [wifi { || nmcli con up id "Xiaomi 15" }]
+      t: ["wacom Tablet", { || xsetwacom --set "Wacom One by Wacom S Pen stylus" Rotate half }]
     }
   }
   d: {
@@ -245,6 +285,8 @@ let keys = {
     keys: {
       h: [hide { || xmonadctl "layout-hide-window" }]
       r: [restore { || xmonadctl "layout-restore-hidden-windor" }]
+      w: [list { || window_list }]
+      W: [list { || rofi -show window }]
     }
   }
 }
@@ -330,6 +372,10 @@ def "main continue" [] {
     }
     $key_txt_lines | to text | save -f $"($env.HOME)/.xmonad/which-key.list.txt"
   }
+}
+
+def "main window-list" [--bring] {
+  window_list --bring=$bring
 }
 
 
