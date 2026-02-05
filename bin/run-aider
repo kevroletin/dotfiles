@@ -1,7 +1,6 @@
 #!/usr/bin/env nu
 
-# let is_dark_mode = (^gsettings get org.gnome.desktop.interface color-scheme | str contains dark)
-let is_dark_mode = true
+let is_dark_mode = (^gsettings get org.gnome.desktop.interface color-scheme | str contains dark)
 $env.AIDER_DARK_MODE = $is_dark_mode
 $env.AIDER_LIGHT_MODE = (not $is_dark_mode)
 $env.AIDER_CODE_THEME = if ($is_dark_mode) { "solarized-dark" } else { "solarized-light" }
