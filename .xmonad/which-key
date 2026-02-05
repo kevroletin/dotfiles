@@ -233,7 +233,8 @@ let keys = {
       g: [gaps { || xmonadctl "layout-spacing-toggle" }]
       s: [style { || theme-switcher "toggle" }]
       o: [opacity { || toggle-opacity }]
-      b: ["bar (status bar)" { || toggle_systemd_service xmobar }]
+      b: ["bar (status bar)" { || xmonadctl "toggle-docks" }]
+      B: ["bar (status bar)" { || toggle_systemd_service xmobar }]
       d: ["decorations" { || toggle_systemd_service picom }]
     }
   }
@@ -245,8 +246,8 @@ let keys = {
         keys: {
           V: ["play video" { || cd ~/Videos; alacritty_tiled $"($env.HOME)/bin/yt-play" --save }]
           v: ["play video" { || cd ~/Videos; alacritty_float $"($env.HOME)/bin/yt-play" --save }]
-          A: ["play audio" { || cd ~/Music/alacritty_tiled; nu $"($env.HOME)/bin/yt-play" --save --only-audio }]
-          a: ["play audio" { || cd ~/Music/alacritty_float; nu $"($env.HOME)/bin/yt-play" --save --only-audio }]
+          A: ["play audio" { || cd ~/Music; alacritty_tiled $"($env.HOME)/bin/yt-play" --save --only-audio }]
+          a: ["play audio" { || cd ~/Music; alacritty_float $"($env.HOME)/bin/yt-play" --save --only-audio }]
           m: ["download audio to ~/Music" { ||
                 let url = ^xclip -o -selection clipboard
                 if ( try { $url | url parse } | is-not-empty) {

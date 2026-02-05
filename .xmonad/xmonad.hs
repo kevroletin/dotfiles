@@ -423,6 +423,7 @@ myCommands =
   , ("layout-set-stall", sendMessage (JumpToLayout "STall"))
   , ("layout-toggle-focused-maximize", withFocused (sendMessage . maximizeFocusedRestore))
   , ("layout-toggle-float", toggleFloat)
+  , ("toggle-docks", sendMessage ToggleStruts)
   , --
     ("layout-spacing-inc", incScreenWindowSpacing defSpacing)
   , ("layout-spacing-dec", decScreenWindowSpacing defSpacing)
