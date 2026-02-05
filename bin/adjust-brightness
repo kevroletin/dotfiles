@@ -35,6 +35,47 @@ def "main set" [value] {
   set_value value
 }
 
+def "main monitor" [] {
+  let f = {
+    let $curr = open $backlight_path | into int
+    let x = (($curr * 100 / $max_val) | into int)
+    if $x < 20 {
+      print $"󰃜 ($x)"
+    } else if $x < 80 {
+      print $"󰃟 ($x)"
+    } else if $x == 100 {
+      print " 100"
+    } else {
+      print $"󰃞 ($x)"
+    }
+    let ts = date now
+    $ts | job send 0
+    job spawn {
+      sleep 5sec
+      $ts | job send 0
+    }
+    ignore
+  }
+  job spawn {
+    watch -q $backlight_path | each $f
+  }
+
+  mut $max = (date now)
+  do $f
+  loop {
+    let x = job recv
+    if ($x == $max) {
+      if ((open $backlight_path | into int) == $max_val) {
+        print 
+      } else {
+        print ""
+      }
+    } else if ($x > $max) {
+      $max = $x
+    }
+  }
+}
+
 def main [] {
   let x = ($current_val * 100.0 / $max_val | into int)
   let bars = (
