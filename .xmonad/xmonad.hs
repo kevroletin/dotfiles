@@ -296,7 +296,7 @@ keysToAdd x =
     -- mod-[1..9] %! Switch to workspace N
     -- mod-shift-[1..9] %! Move client to workspace N
     [ ((m .|. modMask x, k), windows $ f i)
-    | (i, k) <- zip (XMonad.workspaces x) [xK_1 .. xK_9]
+    | (i, k) <- zip (XMonad.workspaces x) ([xK_1 .. xK_9] ++ [xK_0])
     , (f, m) <- [(W.greedyView, 0), (W.shift, shiftMask)]
     ]
     -- ++
