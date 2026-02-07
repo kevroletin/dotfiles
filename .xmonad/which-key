@@ -129,6 +129,10 @@ let keys = {
       b: [brightness { || less-brightness }]
       g: [gaps { || xmonadctl layout-spacing-inc }]
       o: [opacity { || less-opacity }]
+      v: [volume { ||
+            ^pactl set-sink-volume @DEFAULT_SINK@ -3%
+            date now | save -f  ~/.local/share/dotfiles/volume-indicator-wakeup
+          }]
     }
   }
   i: {
@@ -137,6 +141,10 @@ let keys = {
       b: [brightness { || more-brightness }]
       g: [gaps { || xmonadctl layout-spacing-inc }]
       o: [opacity { || more-opacity }]
+      v: [volume { ||
+           ^pactl set-sink-volume @DEFAULT_SINK@ +3%
+           date now | save -f  ~/.local/share/dotfiles/volume-indicator-wakeup
+         }]
     }
   }
   l: {
