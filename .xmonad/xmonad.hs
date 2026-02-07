@@ -32,16 +32,14 @@ import XMonad.Actions.UpKeys
 import XMonad.Actions.UpdatePointer
 import XMonad.Config.Desktop (desktopConfig)
 import XMonad.Hooks.EwmhDesktops
-import XMonad.Hooks.Minimize
-import XMonad.Layout.BoringWindows
-import qualified XMonad.Layout.BoringWindows as BW
-
--- import XMonad.Hooks.FadeInactive
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.ManageHelpers
+import XMonad.Hooks.Minimize
 import XMonad.Hooks.ServerMode
 import XMonad.Hooks.StatusBar
 import XMonad.Hooks.StatusBar.PP
+import XMonad.Layout.BoringWindows
+import qualified XMonad.Layout.BoringWindows as BW
 import XMonad.Layout.MagicFocus
 import XMonad.Layout.Minimize
 import XMonad.Layout.Renamed
@@ -533,15 +531,16 @@ main = do
  where
   withSpacing size name x = named name (spacingWithEdge size x)
   tallLayout = withSpacing defSpacing "STall" (Tall 1 (10 / 100) (2 / 3))
-  tallPinnedLayout = magicFocus $ withSpacing defSpacing "📌Tall" (Tall 1 (10 / 100) (2 / 3))
+  tallPinnedLayout = magicFocus $ withSpacing defSpacing "📌Tall" (Tall 1 (5 / 100) (60 / 100))
   myLayoutHook =
     avoidStruts $
       boringWindows $
-        minimize $
-          (lessBorders (Combine Union Never OnlyFloat)) $
-            ( maximizeFocused (tallLayout ||| withSpacing defSpacing "SFull" Full)
-                ||| (markEwmhFullscreen Full)
-            )
+        renamed [CutWordsLeft 1] $
+          minimize $
+            (lessBorders (Combine Union Never OnlyFloat)) $
+              ( maximizeFocused (tallLayout ||| withSpacing defSpacing "SFull" Full)
+                  ||| (markEwmhFullscreen Full)
+              )
 
 -- \||| Full
 

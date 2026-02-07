@@ -13,9 +13,7 @@ export def --wrapped xmonadctl [...$rest] {
 }
 
 export def --wrapped alacritty_tiled [...$rest --w=100 --h=30] {
-  (^alacritty
-    -o $"window.dimensions.columns=($w)" -o $"window.dimensions.lines=($h)"
-    -e ...$rest)
+  (^alacritty -e ...$rest)
 }
 
 export def --wrapped alacritty_float [...$rest --w=100 --h=30] {
@@ -26,11 +24,11 @@ export def --wrapped alacritty_float [...$rest --w=100 --h=30] {
 
 export def yazi_tiled [dir  --w=100 --h=30] {
   cd $dir
-  alacritty_tiled yazi --w=$w --h=$h
+  alacritty_tiled nu -e yazi --w=$w --h=$h
 }
 
 export def yazi_float [dir  --w=100 --h=30] {
   cd $dir
-  alacritty_float yazi --w=$w --h=$h
+  alacritty_float nu -e yazi --w=$w --h=$h
 }
 
