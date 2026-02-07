@@ -11,6 +11,7 @@ def act_volume [act] {
     "-" => (^pactl set-sink-volume @DEFAULT_SINK@ -3%)
     "!" => (^pactl set-sink-volume @DEFAULT_SINK@ 0)
   }
+  date now | save -f  ~/.local/share/dotfiles/volume-indicator-wakeup
 }
 
 def act_opacity [act] {
