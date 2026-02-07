@@ -1,0 +1,22 @@
+#!/usr/bin/env nu
+
+let mx = 15200
+let my = 9500
+
+def "main small" [] {
+  let n = 3
+  let w = $mx / $n
+  let h = $my / $n
+  let gap_w = $my - $h
+
+  print set "Wacom One by Wacom S Pen stylus" "Area" $"($mx - $w | into int) ($my - $h - ($gap_w / 2) | into int) ($mx | into int) ($my - ($gap_w / 2) | into int)"
+  xsetwacom --set "Wacom One by Wacom S Pen stylus" "Area" $"($mx - $w | into int) ($my - $h - ($gap_w / 2) | into int) ($mx | into int) ($my - ($gap_w / 2) | into int)"
+  xsetwacom --set "Wacom One by Wacom S Pen stylus" Rotate half
+}
+
+def "main full" [] {
+  xsetwacom --set "Wacom One by Wacom S Pen stylus" Rotate half
+  xsetwacom --set "Wacom One by Wacom S Pen stylus" "Area" $"0 0 ($mx) ($my)"
+}
+
+def "main" [] {}

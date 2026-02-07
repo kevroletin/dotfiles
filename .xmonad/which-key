@@ -5,23 +5,6 @@ use nu/dot/sys *
 use nu/dot/theme *
 use std/log *
 
-# TODO: this implementation spawns an orphan to download the audio, while
-# the other implementation pops up a terminal... Do we really need this
-# background task? The pop-up terminal ux seem to be quite ok once we 
-# brought "minimize window" feature
-def --wrapped yt [...$rest] {
-  let cmd = [
-    yt-dlp
-    --remote-components ejs:github
-    --cookies-from-browser "firefox:/home/behemoth/snap/firefox/common/.mozilla/firefox/IyoTgaNE.Profile 6"
-    ...$rest
-  ] | each { if ($in | str contains " ") { $"'($in)'" } else { $in } }
-    | str join " "
-
-  $"#!/bin/sh
-nohup ($cmd) &" | sh -
-}
-
 def yes_no [$msg $act] {
   "yes\nno" | rofi -theme-str 'entry { placeholder: "yes"; }' -l 2 -dmenu -p $msg | each {
     if ($in =~ "yes") {
@@ -129,8 +112,15 @@ let keys = {
   c: {
     group: configure
     keys: {
-      w: [wifi { || nmcli con up id "Xiaomi 15" }]
-      t: ["wacom Tablet", { || xsetwacom --set "Wacom One by Wacom S Pen stylus" Rotate half }]
+      c: [wifi { || nmcli con up id "Xiaomi 15" }]
+      w: {
+        group: "wacom Tablet"
+        keys: {
+          s: [small { || nu "~/.xmonad/wacom-helper" small }]
+          w: [full { || nu "~/.xmonad/wacom-helper" full }]
+        }
+      }
+      t: [tunnel { || alacritty_tiled tunnel-up }]
     }
   }
   d: {
@@ -205,20 +195,20 @@ let keys = {
   o: {
     group: open
     keys: {
-      m: [music { || quick_yazi_float "~/Music"}]
-      M: [music { || yazi_tiled "~/Music"}]
-      d: [downloads { || quick_yazi_float "~/Downloads"}]
-      D: [downloads { || yazi_tiled "~/Downloads"}]
-      p: [pictures { || quick_yazi_float "~/Pictures"}]
-      P: [pictures { || yazi_tiled "~/Pictures"}]
-      v: [videos { || quick_yazi_float "~/Videos"}]
-      V: [videos { || yazi_tiled "~/Videos"}]
-      c: [documents { || quick_yazi_float "~/Documents"}]
-      C: [documents { || yazi_tiled "~/Documents"}]
-      r: ["screen recordings" { || quick_yazi_float "~/Videos/recordings"}]
-      R: ["screen recordings" { || yazi_tiled "~/Videos/recordings"}]
-      s: [screenshots { || quick_yazi_float "~/Share/screenshots"}]
-      S: [screenshots { || yazi_tiled "~/Share/screenshots"}]
+      M: [music { || quick_yazi_float "~/Music"}]
+      m: [music { || yazi_tiled "~/Music"}]
+      D: [downloads { || quick_yazi_float "~/Downloads"}]
+      d: [downloads { || yazi_tiled "~/Downloads"}]
+      P: [pictures { || quick_yazi_float "~/Pictures"}]
+      p: [pictures { || yazi_tiled "~/Pictures"}]
+      V: [videos { || quick_yazi_float "~/Videos"}]
+      v: [videos { || yazi_tiled "~/Videos"}]
+      C: [documents { || quick_yazi_float "~/Documents"}]
+      c: [documents { || yazi_tiled "~/Documents"}]
+      R: ["screen recordings" { || quick_yazi_float "~/Videos/recordings"}]
+      r: ["screen recordings" { || yazi_tiled "~/Videos/recordings"}]
+      S: [screenshots { || quick_yazi_float "~/Share/screenshots"}]
+      s: [screenshots { || yazi_tiled "~/Share/screenshots"}]
     }
   }
   t: {
@@ -241,26 +231,19 @@ let keys = {
   u: {
     group: utils
     keys: {
-      y: {
-        group: youtube
+      y: ["play youtube video" { || cd ~/Videos; alacritty_tiled $"($env.HOME)/bin/yt" play }]
+      Y: {
+        group: "Donload youtube video"
         keys: {
-          V: ["play video" { || cd ~/Videos; alacritty_tiled $"($env.HOME)/bin/yt-play" --save }]
-          v: ["play video" { || cd ~/Videos; alacritty_float $"($env.HOME)/bin/yt-play" --save }]
-          A: ["play audio" { || cd ~/Music; alacritty_tiled $"($env.HOME)/bin/yt-play" --save --only-audio }]
-          a: ["play audio" { || cd ~/Music; alacritty_float $"($env.HOME)/bin/yt-play" --save --only-audio }]
-          m: ["download audio to ~/Music" { ||
-                let url = ^xclip -o -selection clipboard
-                if ( try { $url | url parse } | is-not-empty) {
-                  cd ~/Music/
-                  notify-send $"Downloading ($url) into ~/Music"
-                  yt -f --no-playlist -f bestaudio --embed-thumbnail $url
-                } else {
-                  notify-send $"Clipboard has no url"
-                }
-             }]
+          p: ["download while playing" { || cd ~/Videos; alacritty_tiled $"($env.HOME)/bin/yt" play --save }]
+          v: ["download video" { || cd ~/Videos; alacritty_tiled $"($env.HOME)/bin/yt" save }]
+          V: ["download video" { || cd ~/Videos; alacritty_float $"($env.HOME)/bin/yt" save }]
+          a: ["download audio" { || cd ~/Music; alacritty_tiled $"($env.HOME)/bin/yt" save }]
+          A: ["download audio" { || cd ~/Music; alacritty_float $"($env.HOME)/bin/yt" save }]
         }
       }
-      t: [terminal { || alacritty_float $env.SHELL }]
+      T: [terminal { || alacritty_float $env.SHELL }]
+      t: [Terminal { || alacritty_tiled $env.SHELL }]
       h: [top { || alacritty_float "top" }]
       c: ["color pick" { || xcolor -s clipboard }]
       s: ["screenshot area" { || screenshot }]
