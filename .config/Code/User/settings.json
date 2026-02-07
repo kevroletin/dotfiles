@@ -42,8 +42,6 @@
                 }
             ]
         },
-        // Vim key settings 
-        //https://github.com/VSCodeVim/Vim/issues/2007#issuecomment-529924611
         {
             "before": [
                 "u"
@@ -87,13 +85,31 @@
                     "args": "m"
                 }
             ]
+        },
+        {
+            "before": [
+                ">"
+            ],
+            "commands": [
+                "editor.action.indentLines"
+            ]
+        },
+        {
+            "before": [
+                "<"
+            ],
+            "commands": [
+                "editor.action.outdentLines"
+            ]
+        
         }
     ],
     "whichkey.delay": 500,
     "whichkey.showButtons": true,
     "editor.lineHeight": 0,
     "editor.cursorStyle": "line",
-    "editor.lineNumbers": "on",
+    "editor.cursorBlinking": "solid",
+    "editor.lineNumbers": "relative",
     "editor.wordSeparators": "/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-",
     "editor.wordWrap": "off",
     "editor.guides.indentation": false,
@@ -101,23 +117,22 @@
     "editor.fontFamily": "UbuntuMono Nerd Font Propo",
     "editor.fontSize": 18,
     "editor.inlayHints.enabled": "offUnlessPressed",
-    "editor.cursorBlinking": "solid",
     "window.autoDetectColorScheme": true,
     "workbench.preferredLightColorTheme": "Solarized Light",
     "workbench.preferredDarkColorTheme": "Solarized Dark",
-    "workbench.colorCustomizations": {
-        "editorCursor.foreground": "#ffffff9b",
-        "editor.selectionBackground": "#586e7532",
-        "editor.selectionForeground": "#fdf6e3ff",
-        "[Solarized Light]": {
-            "editorInlayHint.background": "#ffffff00",
-            "editorInlayHint.foreground": "#888888cc",
-            "editorInlayHint.parameterBackground": "#ffffff00",
-            "editorInlayHint.parameterForeground": "#888888cc",
-            "editorInlayHint.typeBackground": "#ffffff00",
-            "editorInlayHint.typeForeground": "#888888cc"
-        }
-    },
+    // "workbench.colorCustomizations": {
+    //     "editorCursor.foreground": "#ffffff9b",
+    //     "editor.selectionBackground": "#586e7532",
+    //     "editor.selectionForeground": "#fdf6e3ff",
+    //     "[Solarized Light]": {
+    //         "editorInlayHint.background": "#ffffff00",
+    //         "editorInlayHint.foreground": "#888888cc",
+    //         "editorInlayHint.parameterBackground": "#ffffff00",
+    //         "editorInlayHint.parameterForeground": "#888888cc",
+    //         "editorInlayHint.typeBackground": "#ffffff00",
+    //         "editorInlayHint.typeForeground": "#888888cc"
+    //     }
+    // },
     "editor.minimap.showSlider": "always",
     "editor.minimap.enabled": false,
     "window.zoomLevel": 2,
