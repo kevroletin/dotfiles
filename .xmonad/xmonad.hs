@@ -5,7 +5,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
 import Control.Exception as E
@@ -13,7 +12,6 @@ import qualified Data.List as L
 import qualified Data.Map as M
 import Data.Semigroup (All)
 import qualified Data.Text as T
-import Data.Traversable
 import Graphics.X11.ExtraTypes.XF86
 import MarkEwmhFullscreen
 import MaximizeFocused
@@ -44,8 +42,7 @@ import XMonad.Layout.MagicFocus
 import XMonad.Layout.Minimize
 import XMonad.Layout.Renamed
 import XMonad.Layout.Spacing
-import XMonad.Layout.ZoomRow
-import XMonad.Prelude (fromMaybe, listToMaybe, (>=>))
+import XMonad.Prelude (fromMaybe, listToMaybe)
 import qualified XMonad.StackSet as W
 import qualified XMonad.Util.Hacks as Hacks
 import XMonad.Util.Loggers
@@ -329,27 +326,31 @@ myUpKeys _conf =
 myKeys :: XConfig Layout -> M.Map KeyCombination (X ())
 myKeys x = M.fromList (keysToAdd x)
 
-fstOr x [] = x
-fstOr _ (x : _) = x
-
 -- modified https://xmonad.github.io/xmonad-docs/xmonad-contrib/src/XMonad.Util.NamedWindows.html#getNameWMClass
 _getNameWMClass :: Window -> X String
 _getNameWMClass w =
   withDisplay $ \d ->
     -- TODO, this code is ugly and convoluted -- clean it up
     do
-      let getIt = bracket getProp (xFree . tp_value) copy
+      let getIt = bracket getProp (xFree . tp_value) copy'
           getProp = getTextProperty d w wM_CLASS
-          copy prop =
+          copy' prop =
             fromMaybe "" . listToMaybe <$> wcTextPropertyToTextList d prop
       io $
         getIt `E.catch` \(SomeException _) ->
           resName <$> getClassHint d w
 
+tab :: Theme -> String -> String -> String -> String
 tab theme fg bg =
   wrap (xmobarColor bg (th_bg theme) "\xE0B6") (xmobarColor bg (th_bg theme) "\xE0B4") . xmobarColor fg bg
+
+activeTab :: Theme -> String -> String
 activeTab theme = tab theme (th_activeTabFg theme) (th_activeTabBg theme)
+
+inactiveTab :: Theme -> String -> String
 inactiveTab theme = tab theme (th_inactiveTabFg theme) (th_inactiveTabBg theme)
+
+workspaceTab :: Theme -> String -> String
 workspaceTab theme = tab theme (th_workspaceTabFg theme) (th_workspaceTabBg theme)
 
 logNumWin :: Theme -> Logger
@@ -361,14 +362,14 @@ logNumWin theme = withWindowSet $ \ws -> do
       let availableLen = 90
       let upperLimit = min 30 (max 5 (availableLen `div` items)) - 2
 
-      xs@W.Stack{up, focus, down} <- readNames upperLimit st
+      xs <- readNames upperLimit st
 
-      let up' = fmap (inactiveTab theme) up
-      let down' = fmap (inactiveTab theme) down
-      let before = if null up then "" else (L.intercalate "" (reverse up'))
-      let after = if null down then "" else (L.intercalate "" down')
+      let up' = fmap (inactiveTab theme) (W.up xs)
+      let down' = fmap (inactiveTab theme) (W.down xs)
+      let before = if null (W.up xs) then "" else L.intercalate "" (reverse up')
+      let after = if null (W.down xs) then "" else L.intercalate "" down'
 
-      let res = before ++ activeTab theme focus ++ after
+      let res = before ++ activeTab theme (W.focus xs) ++ after
       pure (Just res)
  where
   prettyNameM :: Int -> Window -> X String
@@ -425,7 +426,7 @@ myCommands =
   , --
     ("layout-spacing-inc", incScreenWindowSpacing defSpacing)
   , ("layout-spacing-dec", decScreenWindowSpacing defSpacing)
-  , ("layout-spacing-set-1", setScreenWindowSpacing (defSpacing * 1))
+  , ("layout-spacing-set-1", setScreenWindowSpacing defSpacing)
   , ("layout-spacing-set-2", setScreenWindowSpacing (defSpacing * 2))
   , ("layout-spacing-set-3", setScreenWindowSpacing (defSpacing * 3))
   , ("layout-spacing-set-4", setScreenWindowSpacing (defSpacing * 4))
@@ -465,6 +466,7 @@ data Theme = Theme
   }
   deriving (Show)
 
+darkTheme :: Theme
 darkTheme =
   Theme
     { th_fg = "#ccc6b7"
@@ -479,6 +481,7 @@ darkTheme =
     , th_normalBorder = "#586e75"
     }
 
+lightTheme :: Theme
 lightTheme =
   Theme
     { th_fg = "#002b36"
@@ -531,15 +534,16 @@ main = do
  where
   withSpacing size name x = named name (spacingWithEdge size x)
   tallLayout = withSpacing defSpacing "STall" (Tall 1 (10 / 100) (2 / 3))
-  tallPinnedLayout = magicFocus $ withSpacing defSpacing "📌Tall" (Tall 1 (5 / 100) (60 / 100))
+  _tallPinnedLayout = magicFocus $ withSpacing defSpacing "📌Tall" (Tall 1 (5 / 100) (60 / 100))
   myLayoutHook =
     avoidStruts $
       boringWindows $
         renamed [CutWordsLeft 1] $
           minimize $
-            (lessBorders (Combine Union Never OnlyFloat)) $
+            lessBorders
+              (Combine Union Never OnlyFloat)
               ( maximizeFocused (tallLayout ||| withSpacing defSpacing "SFull" Full)
-                  ||| (markEwmhFullscreen Full)
+                  ||| markEwmhFullscreen Full
               )
 
 -- \||| Full
