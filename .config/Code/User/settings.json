@@ -91,7 +91,6 @@
     ],
     "whichkey.delay": 500,
     "whichkey.showButtons": true,
-    "jupyter.alwaysTrustNotebooks": true,
     "editor.lineHeight": 0,
     "editor.cursorStyle": "line",
     "editor.lineNumbers": "on",
@@ -102,10 +101,12 @@
     "editor.fontFamily": "UbuntuMono Nerd Font Propo",
     "editor.fontSize": 18,
     "editor.inlayHints.enabled": "offUnlessPressed",
+    "editor.cursorBlinking": "solid",
     "window.autoDetectColorScheme": true,
     "workbench.preferredLightColorTheme": "Solarized Light",
     "workbench.preferredDarkColorTheme": "Solarized Dark",
     "workbench.colorCustomizations": {
+        "editorCursor.foreground": "#ffffff9b",
         "editor.selectionBackground": "#586e7532",
         "editor.selectionForeground": "#fdf6e3ff",
         "[Solarized Light]": {
@@ -122,16 +123,6 @@
     "window.zoomLevel": 2,
     "workbench.editor.showTabs": "single",
     "workbench.startupEditor": "none",
-    // from https://vspacecode.github.io/docs/whichkey/extra
-    // seems to have no effects :(
-    "customizeUI.stylesheet": {
-        // Let the quick pick take the full window height, so that more bindings are visible.
-        ".quick-input-widget > .quick-input-list > .monaco-list": "max-height: 100vh !important;",
-        // Colorize icons uniformly and add some extra padding
-        ".quick-input-widget > .quick-input-list .codicon": "color: #83a598 !important; padding-right: 5px;",
-        // Colorize entries starting with a `+` differently
-        ".quick-input-widget > .quick-input-list .monaco-list-row[aria-label*=\" +\"] .label-description": "color: #8ec07c;"
-    },
     "editor.bracketPairColorization.enabled": true,
     "rust-analyzer.checkOnSave": true,
     "rust-analyzer.check.command": "clippy",
@@ -139,16 +130,23 @@
     "editor.inlineSuggest.enabled": true,
     "lldb.suppressUpdateNotifications": true,
     "editor.renderWhitespace": "none",
-    "workbench.colorTheme": "Solarized Dark",
     "workbench.activityBar.location": "hidden",
     "files.autoSave": "afterDelay",
     "rust-analyzer.linkedProjects": [
     ],
-    "github.copilot.editor.enableAutoCompletions": true,
     "rust-analyzer.workspace.discoverConfig": null,
     "window.commandCenter": false,
-    "github.copilot.chat.tools.memory.enabled": true,
     "workbench.editor.enablePreview": false,
     "haskell.ghcupExecutablePath": "/home/behemoth/.ghcup/bin/ghcup",
-    "chat.viewSessions.orientation": "stacked"
+    "chat.viewSessions.orientation": "stacked",
+    "window.menuBarVisibility": "compact",
+    "workbench.layoutControl.enabled": false,
+    "vspacecode.bindingOverrides": [
+      {
+        "keys": "c.a",
+        "name": "Code actions",
+        "type": "command",
+        "command": "editor.action.quickFix",
+      }
+    ]
 }
