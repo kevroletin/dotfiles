@@ -7,7 +7,7 @@ Wants=trayer.service
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/xmobar %h/.xmonad/themes/.xmobarrc
+ExecStart=%h/.local/bin/xmobar
 Restart=on-failure
 RestartSec=2
 
