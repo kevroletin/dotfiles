@@ -28,8 +28,8 @@ This function should only modify configuration layer settings."
 
    ;; List of additional paths where to look for configuration layers.
    ;; Paths must have a trailing slash (i.e. `~/.mycontribs/')
-   ;;dotspacemacs-configuration-layer-path '("~/.spacemacs.d/")
-   dotspacemacs-configuration-layer-path '()
+   dotspacemacs-configuration-layer-path '("~/.spacemacs.d/")
+   ;;dotspacemacs-configuration-layer-path '()
 
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
@@ -87,10 +87,10 @@ This function should only modify configuration layer settings."
      chinese
 
      ;; User config
-     ;; user-config
+     user-config
      ;; org-jira
-     ;; (user-theme :variables user-theme-replace-atom-dark '())
-     ;; themes-megapack
+     ;; user-theme
+     themes-megapack
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
@@ -104,10 +104,11 @@ This function should only modify configuration layer settings."
      base16-theme
      ;; gnuplot-mode
      ;; groovy-mode
-     ;; rainbow-mode
+     rainbow-mode
      ;; scad-mode
-     ;; solarized-theme
+     solarized-theme
 
+     auto-dark
      polymode
      )
    ;; A list of packages that cannot be updated.
@@ -255,11 +256,8 @@ It should only modify the values of Spacemacs settings."
    ;; package can be defined with `:package', or a theme can be defined with
    ;; `:location' to download the theme package, refer the themes section in
    ;; DOCUMENTATION.org for the full theme specifications.
-   dotspacemacs-themes '(base16-default-dark
-                         base16-default-light
-                         atom-dark
-                         spacemacs-dark
-                         adwaita)
+   dotspacemacs-themes '(doom-solarized-light
+                         doom-solarized-dark)
 
    ;; Set the theme for the Spaceline. Supported themes are `spacemacs',
    ;; `all-the-icons', `custom', `doom', `vim-powerline' and `vanilla'. The
@@ -280,7 +278,7 @@ It should only modify the values of Spacemacs settings."
    ;; a non-negative integer (pixel size), or a floating-point (point size).
    ;; Point size is recommended, because it's device independent. (default 10.0)
    dotspacemacs-default-font '("Ubuntu Mono"
-                               :size 16.0
+                               :size 17.0
                                :weight normal
                                :width normal
                                :powerline-offset 2
@@ -680,18 +678,11 @@ layers configuration. You are free to put any user code."
   (setq powerline-default-separator 'box)
   (setq lua-indent-level 4)
 
-  ;; (with-eval-after-load 'mcp-hub
-  ;;   ;; This list is the "Single Source of Truth"
-  ;;   (setq github-copilot-mcp-servers
-  ;;         '(;; Add the filesystem server
-  ;;           ;; It must be installed (e.g., via "npm install -g @modelcontextprotocol/server-filesystem")
-  ;;           ("fs" . (:command "npx"
-  ;;                             :args ("-y" "@modelcontextprotocol/server-filesystem"
-  ;;                                    ;; This path MUST be absolute and point to your projects
-  ;;                                    "/home/behemoth/Scratch/rust/playground")))))
+  (use-package auto-dark
+    :init (spacemacs/defer-until-after-user-config #'auto-dark-mode)
+    :defer t)
 
-  ;; ;; We must also tell the mcp-hub to use this new list
-  ;; (setq mcp-hub-servers github-copilot-mcp-servers))
+  (global-hl-line-mode nil)
 
   (server-start))
 
@@ -715,6 +706,11 @@ This function is called at the very end of Spacemacs initialization."
    ;; If you edit it by hand, you could mess it up, so be careful.
    ;; Your init file should contain only one such instance.
    ;; If there is more than one, they won't work right.
+   '(custom-safe-themes
+     '("5b01334cb330cd69e5f3d6214521c9f9d703d1c31ca0f4f04f36b6cf9f4870c8"
+       "de024183b38fe74c127a4a4fdb79b10c5e86d512547675faa5b0bfadc1805004"
+       "3d9512412d5874972f9142a6c230258e33ff1168d1d21aa68d7a568f328a400b"
+       "f700bc979515153bef7a52ca46a62c0aa519950cc06d539df4f3d38828944a2c" default))
    '(package-selected-packages
      '(ace-jump-helm-line ace-link ace-pinyin add-node-modules-path aggressive-indent
                           aio all-the-icons atom-dark-theme attrap auto-compile
