@@ -71,26 +71,50 @@ def restart_deamons [] {
   # restarted by xmobar dependency in systemd
   # systemctl --user restart trayer.service
   # systemctl --user restart xmobar.service
+
   xmonad --restart
   systemctl --user restart dunst.service
   notify-send 'Desktop theme update'
 }
 
 def "main monitor" [] {
+  # Throttle updates so that all changes lead to xmonad restart but
+  # not too frequently (give it 5sec to initialize)
+  let restart_task = job spawn {
+    mut last_restart = (date now) - 5sec
+    mut next_restart = $last_restart
+    loop {
+      let $ts = job recv
+      debug $"--- message ($ts) ---"
+      if ($ts < $next_restart) { # delayed restart already scheduled
+        debug "Throttling"
+      } else if ($ts == $next_restart) { # delayed update
+        $last_restart = date now
+        restart_deamons
+      } else if (($ts - $last_restart) > 5sec) {
+        # either no scheduled restart or a race condition when timestamp from
+        # monitor thread came earlier than throttling event
+        $last_restart = date now
+        restart_deamons
+      } else {
+        # setup throttling
+        debug "Delay update"
+        let x = ((date now) + 5sec)
+        $next_restart = $x
+        let parent_task = job id
+        job spawn {
+          sleep 5sec
+          debug $">>> sending ($x)"
+          $x | job send ($parent_task)
+        }
+      }
+    }
+  }
   gsettings monitor org.gnome.desktop.interface color-scheme
       | lines
       | each {|line|
-          print $line
-
-          let $last_time = "theme-style-last-set-time" | load_key
-          let bad_input = ($last_time | is-empty)
-
-          if ($bad_input or ((date now) - $last_time > 5sec)) {
-            system_theme | set_theme $in
-            restart_deamons
-          } else {
-            info "skipping automatic update because the theme was likely set manually just now"
-          }
+          system_theme | set_theme $in
+          date now | job send $restart_task
       }
 }
 
@@ -128,7 +152,6 @@ def "main expand-templates" [new_style] {
 
 def "main set" [new_style] {
   set_theme_ext $new_style --persist
-  restart_deamons
 }
 
 def "main set-by-time" [] {
@@ -143,13 +166,11 @@ def "main set-by-time" [] {
      "late-dark"
   }
   set_theme_ext $ext_style --persist
-  restart_deamons
 }
 
 def "main toggle" [] {
   let style = if ((system_theme) =~ "light") { "dark" } else { "light" }
   set_theme_ext $style --persist
-  restart_deamons
 }
 
 def open_menu [] {

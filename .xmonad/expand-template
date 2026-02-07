@@ -5,10 +5,12 @@
 # otherwise write xxx
 #
 
+use std/log *
+
 def expand [pallete] {
   str replace -r -a '\(\$[\w\.\-]+\)' {
     let key = $in | parse "(${res})" | get res | first
-    print $"Searching for ($key)"
+    debug $"Searching for ($key)"
     $pallete | get $key | into string
   }
 }
