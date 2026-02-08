@@ -10,6 +10,7 @@
 import Control.Exception as E
 import qualified Data.List as L
 import qualified Data.Map as M
+import Data.Ratio
 import Data.Semigroup (All)
 import qualified Data.Text as T
 import Graphics.X11.ExtraTypes.XF86
@@ -24,6 +25,7 @@ import XMonad
 import XMonad.Actions.CopyWindow
 import XMonad.Actions.CycleRecentWS
 import XMonad.Actions.CycleWS
+import XMonad.Actions.FloatKeys
 import XMonad.Actions.Minimize
 import XMonad.Actions.RotSlaves
 import XMonad.Actions.UpKeys
@@ -41,6 +43,7 @@ import qualified XMonad.Layout.BoringWindows as BW
 import XMonad.Layout.MagicFocus
 import XMonad.Layout.Minimize
 import XMonad.Layout.Renamed
+import XMonad.Layout.SimplestFloat
 import XMonad.Layout.Spacing
 import XMonad.Prelude (fromMaybe, listToMaybe)
 import qualified XMonad.StackSet as W
@@ -420,6 +423,7 @@ myCommands =
   , ("layout-set-full", sendMessage (JumpToLayout "Full"))
   , ("layout-set-sfull", sendMessage (JumpToLayout "SFull"))
   , ("layout-set-stall", sendMessage (JumpToLayout "STall"))
+  , ("layout-set-float", sendMessage (JumpToLayout "Float"))
   , ("layout-toggle-focused-maximize", withFocused (sendMessage . maximizeFocusedRestore))
   , ("layout-toggle-float", toggleFloat)
   , ("toggle-docks", sendMessage ToggleStruts)
@@ -439,6 +443,12 @@ myCommands =
     )
   , ("layout-hide-window", withFocused minimizeWindow)
   , ("layout-restore-hidden-windor", withLastMinimized maximizeWindowAndFocus)
+  , ("window-expand", withFocused (keysResizeWindow (40, 40) (1 % 2, 1 % 2)))
+  , ("window-shrink", withFocused (keysResizeWindow (-40, -40) (1 % 2, 1 % 2)))
+  , ("window-expand-horiz", withFocused (keysResizeWindow (40, 0) (1 % 2, 1 % 2)))
+  , ("window-shrink-horiz", withFocused (keysResizeWindow (-40, 0) (1 % 2, 1 % 2)))
+  , ("window-expand-vert", withFocused (keysResizeWindow (0, 40) (1 % 2, 1 % 2)))
+  , ("window-shrink-vert", withFocused (keysResizeWindow (0, -40) (1 % 2, 1 % 2)))
   ]
 
 myServerModeEventHook :: Event -> X All
@@ -544,6 +554,7 @@ main = do
               (Combine Union Never OnlyFloat)
               ( maximizeFocused (tallLayout ||| withSpacing defSpacing "SFull" Full)
                   ||| markEwmhFullscreen Full
+                  ||| (named "Float" simplestFloat)
               )
 
 -- \||| Full

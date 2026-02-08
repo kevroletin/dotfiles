@@ -103,6 +103,9 @@ let keys = {
         group: window
         keys: {
           o: [opacity { || knob_mode "window-opacity" }]
+          s: [size { || knob_mode "window-size" }]
+          w: [width { || knob_mode "window-width" }]
+          h: [height { || knob_mode "window-height" }]
         }
       }
       g: [gaps { || knob_mode "gaps" }]
@@ -133,6 +136,14 @@ let keys = {
             ^pactl set-sink-volume @DEFAULT_SINK@ -3%
             date now | save -f  ~/.local/share/dotfiles/volume-indicator-wakeup
           }]
+      w: {
+        group: window
+        keys: {
+          s: [size { || (^xmonadctl window-shrink) }]
+          w: [width { || (^xmonadctl window-shrink-horiz) }]
+          h: [height { || (^xmonadctl window-shrink-vert) }]
+        }
+      }
     }
   }
   i: {
@@ -145,6 +156,14 @@ let keys = {
            ^pactl set-sink-volume @DEFAULT_SINK@ +3%
            date now | save -f  ~/.local/share/dotfiles/volume-indicator-wakeup
          }]
+      w: {
+        group: window
+        keys: {
+          s: [size { || (^xmonadctl window-expand) }]
+          w: [width { || (^xmonadctl window-expand-horiz) }]
+          h: [height { || (^xmonadctl window-expand-vert) }]
+        }
+      }
     }
   }
   l: {
@@ -153,9 +172,10 @@ let keys = {
       l: [next { || xmonadctl "layout-next" }]
       m: ["maximized with gaps" { || xmonadctl "layout-set-sfull" }]
       M: [Maximized { || xmonadctl "layout-set-full" }]
-      t: [tall { || xmonadctl "layout-set-stall" }]
-      f: ["maximize focused" { || xmonadctl "layout-toggle-focused-maximize" }]
-      x: ["toggle float (eXclude from tiling)" { || xmonadctl "layout-toggle-float" }]
+      t: [tiling { || xmonadctl "layout-set-stall" }]
+      T: ["toggle float" { || xmonadctl "layout-toggle-float" }]
+      e: ["enlarge (maximize focused)" { || xmonadctl "layout-toggle-focused-maximize" }]
+      f: ["float" { || xmonadctl "layout-set-float" }]
       g: {
         group: "gaps"
         keys: {

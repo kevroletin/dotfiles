@@ -28,6 +28,26 @@ def act_window_opacity [act] {
   }
 }
 
+def act_window_size [act] {
+  match ($act) {
+    "+" => (xmonadctl "window-expand"),
+    "-" => (xmonadctl "window-shrink"),
+  }
+}
+
+def act_window_width [act] {
+  match ($act) {
+    "+" => (xmonadctl "window-expand-horiz"),
+    "-" => (xmonadctl "window-shrink-horiz"),
+  }
+}
+def act_window_height [act] {
+  match ($act) {
+    "+" => (xmonadctl "window-expand-vert"),
+    "-" => (xmonadctl "window-shrink-vert"),
+  }
+}
+
 def act_gaps [act new_value?] {
   # + makes windows "bigger"
   match ($act) {
@@ -45,7 +65,7 @@ def act_brightness [act new_value?] {
 }
 
 def check_mode [mode] {
-  assert ($mode in ["brightness", "volume", "gaps", "opacity", "window-opacity"])
+  assert ($mode in ["brightness" "volume" "gaps" "opacity" "window-opacity" "window-width" "window-height" "window-size"])
 }
 
 def store_mode [mode] {
@@ -83,6 +103,9 @@ def main [act] {
     "volume" => (act_volume $act),
     "opacity" => (act_opacity $act),
     "window-opacity" => (act_window_opacity $act),
+    "window-width" => (act_window_width $act),
+    "window-height" => (act_window_height $act),
+    "window-size" => (act_window_size $act),
   }
 
   store_mode $action
