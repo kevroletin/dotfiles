@@ -53,6 +53,8 @@ This function should only modify configuration layer settings."
      ;; Core
      auto-completion
      better-defaults
+     helpful
+     ibuffer
      org
      spell-checking
      syntax-checking
@@ -75,6 +77,7 @@ This function should only modify configuration layer settings."
      java
      lua
      markdown
+     lsp
      (rust :variables
            lsp-inlay-hint-enable t
            lsp-rust-analyzer-cargo-auto-reload t
@@ -87,7 +90,7 @@ This function should only modify configuration layer settings."
      chinese
 
      ;; User config
-     user-config
+     ;; user-config
      ;; org-jira
      ;; user-theme
      themes-megapack
@@ -256,8 +259,10 @@ It should only modify the values of Spacemacs settings."
    ;; package can be defined with `:package', or a theme can be defined with
    ;; `:location' to download the theme package, refer the themes section in
    ;; DOCUMENTATION.org for the full theme specifications.
-   dotspacemacs-themes '(doom-solarized-light
-                         doom-solarized-dark)
+   dotspacemacs-themes '(
+                         doom-solarized-dark
+                         doom-solarized-light
+                         )
 
    ;; Set the theme for the Spaceline. Supported themes are `spacemacs',
    ;; `all-the-icons', `custom', `doom', `vim-powerline' and `vanilla'. The
@@ -743,23 +748,24 @@ This function is called at the very end of Spacemacs initialization."
                           groovy-mode haskell-snippets helm-ag helm-c-yasnippet
                           helm-comint helm-company helm-css-scss helm-descbinds
                           helm-git-grep helm-gtags helm-hoogle helm-ls-git
-                          helm-make helm-mode-manager helm-org helm-org-rifle
-                          helm-projectile helm-purpose helm-pydoc helm-rtags
-                          helm-swoop helm-themes helm-xref hide-comnt
+                          helm-lsp helm-make helm-mode-manager helm-org
+                          helm-org-rifle helm-projectile helm-purpose helm-pydoc
+                          helm-rtags helm-swoop helm-themes helm-xref hide-comnt
                           highlight-indentation highlight-numbers
                           highlight-parentheses hindent hl-todo hlint-refactor
                           holy-mode hungry-delete hybrid-mode impatient-mode
                           import-js importmagic indent-guide info+ insert-shebang
                           inspector ivy jiraffe js-doc js2-mode js2-refactor
                           jsonrpc lifted link-hint live-py-mode livid-mode
-                          lorem-ipsum lsp-docker lsp-haskell lsp-treemacs
-                          macrostep markdown-toc maven-test-mode mcp meghanada
-                          multi-line multi-term multi-vterm multiple-cursors mvn
-                          mwim nameless nodejs-repl nose npm-mode nushell-mode
-                          nushell-ts-mode ob-http ob-restclient open-junk-file
-                          org-cliplink org-contrib org-download org-mime
-                          org-pomodoro org-present org-projectile org-rich-yank
-                          org-superstar orgit-forge overseer pangu-spacing paradox
+                          lorem-ipsum lsp-docker lsp-haskell lsp-origami
+                          lsp-treemacs lsp-ui macrostep markdown-toc
+                          maven-test-mode mcp meghanada multi-line multi-term
+                          multi-vterm multiple-cursors mvn mwim nameless
+                          nodejs-repl nose npm-mode nushell-mode nushell-ts-mode
+                          ob-http ob-restclient open-junk-file org-cliplink
+                          org-contrib org-download org-mime org-pomodoro
+                          org-present org-projectile org-rich-yank org-superstar
+                          orgit-forge origami overseer pangu-spacing paradox
                           password-generator pcre2el pinyinlib pip-requirements
                           pipenv pippel poetry polymode popwin prettier-js
                           pug-mode py-isort pydoc pyenv-mode pyim pyim-basedict
