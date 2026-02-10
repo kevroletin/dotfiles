@@ -7,9 +7,8 @@ vim.opt.wrap = false
 vim.o.title = true
 vim.o.titlestring = "NVIM: %t"
 
--- Normal borders for diagnostic popups
 vim.diagnostic.config({
   float = {
-    border = "single",
+    border = "rounded",
   },
 })
