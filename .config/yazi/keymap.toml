@@ -11,6 +11,7 @@ prepend_keymap = [
   { on = "J", run = "plugin augment-command -- parent_arrow 1", desc = "Down parent directory" },
   { on = [ "g", "x" ], run = "cd ~/.xmonad/", desc = "~/.xmonad" },
   { on = [ "g", "s" ], run = "cd ~/Scratch/", desc = "~/Scratch" },
+  { on = "z",         run = "plugin zoxide",               desc = "Jump to a directory via zoxide" },
 
   # augment existing commands
   # https://github.com/hankertrix/augment-command.yazi
