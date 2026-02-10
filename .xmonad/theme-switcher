@@ -80,6 +80,17 @@ def restart_deamons [] {
 def "main monitor" [] {
   # Throttle updates so that all changes lead to xmonad restart but
   # not too frequently (give it 5sec to initialize)
+  def apply_theme [] {
+    let new_style = system_theme
+    let last_style = "theme-style" | load_key | default $new_style | split_ext_style
+    # someone called gsettings set org.gnome.desktop.interface color-scheme 'prefer-($style)'
+    # if it's theme-switcher script then it stored theme-style key and it already generated
+    # templates; but if someone else changed gsettings let's re-generate templates
+    if ($last_style.style != $new_style) {
+      set_theme_ext $new_style --persist
+    }
+    restart_deamons
+  }
   let restart_task = job spawn {
     mut last_restart = (date now) - 5sec
     mut next_restart = $last_restart
@@ -90,12 +101,12 @@ def "main monitor" [] {
         debug "Throttling"
       } else if ($ts == $next_restart) { # delayed update
         $last_restart = date now
-        restart_deamons
+        apply_theme
       } else if (($ts - $last_restart) > 5sec) {
         # either no scheduled restart or a race condition when timestamp from
         # monitor thread came earlier than throttling event
         $last_restart = date now
-        restart_deamons
+        apply_theme
       } else {
         # setup throttling
         debug "Delay update"
@@ -112,8 +123,7 @@ def "main monitor" [] {
   }
   gsettings monitor org.gnome.desktop.interface color-scheme
       | lines
-      | each {|line|
-          system_theme | set_theme $in
+      | each {|_line|
           date now | job send $restart_task
       }
 }
